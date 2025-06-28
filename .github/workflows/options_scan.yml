@@ -2,8 +2,8 @@ name: Option Scanner (Google Sheets)
 
 on:
   schedule:
-    - cron: '0 16-23 * * 0'   # 周日 16:00~23:00
-    - cron: '0 * * * 1-5'     # 周一~周五每小时
+    - cron: '0 16-23 * * 0'   # 周日 16点到23点
+    - cron: '0 * * * 1-5'     # 周一到周五每小时一次
   workflow_dispatch:
 
 jobs:
@@ -30,3 +30,14 @@ jobs:
       - name: Run script
         run: |
           python daily_top_options.py
+
+      - name: Install rclone
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rclone
+
+      - name: Upload files to Google Drive
+        run: |
+          echo "${{ secrets.RCLONE_CONF }}" > rclone.conf
+          rclone --config=rclone.conf copy option_activity_log.xlsx gdrive:/your_folder/
+          rclone --config=rclone.conf copy score_*.png gdrive:/your_folder/
