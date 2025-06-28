@@ -39,5 +39,5 @@ jobs:
       - name: Upload files to Google Drive
         run: |
           echo "${{ secrets.RCLONE_CONF }}" > rclone.conf
-          rclone --config=rclone.conf copy option_activity_log.xlsx gdrive:/your_folder/
-          rclone --config=rclone.conf copy score_*.png gdrive:/your_folder/
+          rclone --config=rclone.conf copy option_activity_log.xlsx gdrive:/19wnn6l8z8dsBeOP1UE0TlXeZoKoIOMQy/
+          rclone --config=rclone.conf copy score_*.png gdrive:/19wnn6l8z8dsBeOP1UE0TlXeZoKoIOMQy/
