@@ -2,7 +2,8 @@ name: Option Scanner (Google Sheets)
 
 on:
   schedule:
-    - cron: '*/1 * * * *'   # 每分钟执行一次
+    - cron: '0 16-23 * * 0'   # 周日 16点到23点
+    - cron: '0 * * * 1-5'     # 周一到周五每小时一次
   workflow_dispatch:
 
 jobs:
