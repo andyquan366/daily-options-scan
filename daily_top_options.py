@@ -23,6 +23,6 @@ df = pd.concat([df, pd.DataFrame([{'Index': idx, 'Msg': f'Hello {idx}'}])], igno
 df.to_excel('option_activity_log.xlsx', index=False)
 
 # ====== 5. 上传回 Google Drive（覆盖远端）======
-os.system('rclone copy ./option_activity_log.xlsx "gdrive:/Investing/Daily top options/option_activity_log.xlsx" --drive-chunk-size 64M --progress --ignore-times')
+os.system('rclone copy ./option_activity_log.xlsx "gdrive:/Investing/Daily top options" --drive-chunk-size 64M --progress --ignore-times')
 
 print('✅ 云端1+1测试完成，当前总行数:', len(df))
