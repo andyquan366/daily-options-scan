@@ -2,30 +2,18 @@
 cd /d "%~dp0"
 echo ✅ 当前路径：%cd%
 
-:: 提交当前修改（除了 .xlsx）
-git add *.py
-git add *.yml
-git add *.txt
-git add sync.bat
-if exist .gitignore git add .gitignore
+:: ✅ 告诉 Git：永远别再管 option_activity_log.xlsx（只需执行一次）
+git update-index --assume-unchanged option_activity_log.xlsx
+
+:: ✅ 提交所有文件，排除 Excel（reset 确保不会意外加入）
+git add .
+git reset option_activity_log.xlsx >nul 2>&1
 git commit -m "sync on %date% %time%" 2>nul
 
-:: 如果本地 .xlsx 有改动，先 stash 防止被覆盖
-git diff --quiet option_activity_log.xlsx
-if errorlevel 1 (
-    echo ⚠️ 检测到本地修改的 Excel，自动 stash...
-    git stash push -m "stash-xlsx" option_activity_log.xlsx
-)
-
-:: 拉远程代码（现在目录干净，不会报错）
+:: ✅ 拉远程代码，不影响本地 Excel
 git pull origin main --rebase
 
-:: 恢复 Excel（如果有 stash）
-git stash pop >nul 2>&1
-
-:: 最后把 .xlsx 加进来一起提交
-git add option_activity_log.xlsx
-git commit -m "update excel %date% %time%" 2>nul
+:: ✅ 推送（不包含 Excel）
 git push origin main
 
 pause
