@@ -13,7 +13,7 @@ git commit -m "sync on %date% %time%" 2>nul
 :: ✅ 拉远程代码，不影响本地 Excel
 git pull origin main --rebase
 
-:: ✅ 推送（不包含 Excel）
+:: ✅ 推送（不包含 Excel）1
 git push origin main
 
 pause
