@@ -44,8 +44,6 @@ for ticker in tickers:
     print(f'▶ 正在处理 {ticker} ...')
     try:
         stock = yf.Ticker(ticker)
-        stock._history = {}         # ✅ 清除缓存，确保重新抓取历史价格
-        stock._options = None       # ✅ 清除缓存，确保 option_chain 是最新的
         expiry_dates = stock.options
 
 
@@ -54,18 +52,10 @@ for ticker in tickers:
         if len(hist) >= 2:
             prev_close = hist['Close'].iloc[-2]
             last_price = hist['Close'].iloc[-1]
-            price_change = round((last_price - prev_close) / prev_close, 4)
+            price_change = round((last_price - prev_close) / prev_close * 100, 2)
+            price_change_str = f"{price_change:+.2f}%"
         else:
-            price_change = None
-
-# ✅ 计算 7 天价格变化（百分比）
-        hist_7d = stock.history(period='7d')
-        if len(hist_7d) >= 2:
-            week_start = hist_7d['Close'].iloc[0]
-            week_end = hist_7d['Close'].iloc[-1]
-            price_change_7d = round((week_end - week_start) / week_start, 4)
-        else:
-            price_change_7d = None
+            price_change_str = "N/A"
 
         expiry_dates = [e for e in expiry_dates if (datetime.strptime(e, "%Y-%m-%d").date() - today).days <= 10]
         if not expiry_dates:
@@ -90,12 +80,8 @@ for ticker in tickers:
         if merged_calls.empty or merged_puts.empty:
             continue
 
-# ✅ 选出 top_call 和 top_put（成交量最大）
         top_call = merged_calls.sort_values('volume', ascending=False).iloc[0]
         top_put = merged_puts.sort_values('volume', ascending=False).iloc[0]
-
-# ✅ IV Skew = Call IV - Put IV
-        iv_skew = round(top_call['impliedVolatility'] * 100 - top_put['impliedVolatility'] * 100, 2)
 
         call_volume = top_call['volume']
         put_volume = top_put['volume']
@@ -108,74 +94,49 @@ for ticker in tickers:
         premium_skew = round(top_call['lastPrice'] - top_put['lastPrice'], 2)
         volume_diff_ratio = (call_volume - put_volume) / (call_volume + put_volume) if (call_volume + put_volume) != 0 else 0
 
-
-# ✅ Premium Skew 打分（满分 36）
-        if premium_skew >= 8:
-            score_premium = 36
-        elif premium_skew >= 5:
+# ✅ Premium Skew 打分（满分 50）
+        if premium_skew >= 7:
+            score_premium = 50
+        elif premium_skew >= 4:
+            score_premium = 40
+        elif premium_skew >= 1:
             score_premium = 30
-        elif premium_skew >= 2:
-            score_premium = 24
-        elif premium_skew >= -1:
-            score_premium = 18
-        elif premium_skew >= -4:
-            score_premium = 12
-        elif premium_skew >= -7:
-            score_premium = 6
+        elif premium_skew >= -2:
+            score_premium = 20
+        elif premium_skew >= -5:
+            score_premium = 10
         else:
             score_premium = 0
 
-# ✅ IV Skew 打分（满分 30）
-        if iv_skew >= 9:
-            score_iv = 30
-        elif iv_skew >= 5:
-            score_iv = 25
-        elif iv_skew >= 1:
-            score_iv = 20
-        elif iv_skew >= -3:
-            score_iv = 15
-        elif iv_skew >= -7:
-            score_iv = 10
-        elif iv_skew >= -11:
-            score_iv = 5
-        else:
-            score_iv = 0
-
-# ✅ Volume Diff Ratio 打分（满分 20）
-        if volume_diff_ratio >= 0.7:
-            score_vol = 20
+# ✅ Volume Diff Ratio 打分（满分 30）
+        if volume_diff_ratio >= 0.8:
+            score_vol = 30
         elif volume_diff_ratio >= 0.4:
-            score_vol = 16
+            score_vol = 24
         elif volume_diff_ratio >= 0:
+            score_vol = 18
+        elif volume_diff_ratio >= -0.4:
             score_vol = 12
-        elif volume_diff_ratio >= -0.3:
-            score_vol = 8
-        elif volume_diff_ratio >= -0.6:
-            score_vol = 4
+        elif volume_diff_ratio >= -0.8:
+            score_vol = 6
         else:
             score_vol = 0
 
-# ✅ Put/Call Ratio 打分（满分 14）
-        if put_call_ratio <= 0.1:
-            score_pcr = 14
-        elif put_call_ratio <= 0.4:
-            score_pcr = 12
-        elif put_call_ratio <= 1:
-            score_pcr = 10
+# ✅ Put/Call Ratio 打分（满分 20）
+        if put_call_ratio <= 0.2:
+            score_pcr = 20
+        elif put_call_ratio <= 0.8:
+            score_pcr = 15
         elif put_call_ratio <= 2:
-            score_pcr = 8
+            score_pcr = 10
         elif put_call_ratio <= 4:
-            score_pcr = 6
-        elif put_call_ratio <= 7:
-            score_pcr = 4
-        elif put_call_ratio <= 11:
-            score_pcr = 2
+            score_pcr = 5
         else:
             score_pcr = 0
 
 
 
-        total_score = score_iv + score_premium + score_vol + score_pcr
+        total_score = score_pcr + score_vol + score_premium
 
         sentiment = (
             "Strong Bullish" if total_score >= 80 else
@@ -190,11 +151,11 @@ for ticker in tickers:
                 'Date': today_str,'Time': now_time_str,'Ticker': ticker, 'Company': ticker_name_map.get(ticker, ''),
                 'Type': option_type, 'Strike': top_option['strike'],
                 'IV': round(top_option['impliedVolatility'] * 100, 2),
-                'Volume': int(top_option['volume']), 'Expiry': top_option['expiry'],'Premium Skew': premium_skew,
-                'IV Skew': iv_skew,'Volume Diff Ratio': round(volume_diff_ratio, 4), 
-                'Put/Call Ratio': put_call_ratio, 'Score': total_score,
+                'Volume': int(top_option['volume']), 'Expiry': top_option['expiry'],
+                'Put/Call Ratio': put_call_ratio, 'Premium Skew': premium_skew,
+                'Volume Diff Ratio': round(volume_diff_ratio, 4), 'Score': total_score,
                 'Sentiment': sentiment, 'Contract Symbol': top_option['contractSymbol'],
-                'Price Change': price_change, '7D Change': price_change_7d})
+                'Price Change': price_change_str})
 
         volume_summary[ticker] = total_volume
 
@@ -299,14 +260,6 @@ for row in ws1.iter_rows(min_row=2, min_col=sentiment_col_index, max_col=sentime
     for cell in row:
         cell.fill = PatternFill(start_color=fills.get(cell.value, "FFFFFF"), fill_type="solid")
 
-# ✅ 设置百分比格式显示
-for ws in [ws1]:
-    for row in ws.iter_rows(min_row=2, max_row=ws.max_row):
-        for cell in row:
-            if ws.cell(row=1, column=cell.column).value in ['Price Change', '7D Change']:
-                cell.number_format = '0.00%'  # ✅ 两位小数百分比格式
-
-
 # ✅ 自动调整列宽（对两个工作表都执行）
 from openpyxl.utils import get_column_letter
 
@@ -314,18 +267,13 @@ for ws in [ws1, ws2]:
     for col in ws.columns:
         max_length = 0
         col_letter = get_column_letter(col[0].column)
-        header = ws.cell(row=1, column=col[0].column).value
         for cell in col:
             try:
                 if cell.value:
                     max_length = max(max_length, len(str(cell.value)))
             except:
                 pass
-        if header in ['Price Change', '7D Change']:
-            ws.column_dimensions[col_letter].width = 11 
-        else:
-            ws.column_dimensions[col_letter].width = max_length + 1
-
+        ws.column_dimensions[col_letter].width = max_length + 1
 
 wb.save(file_name)
 
