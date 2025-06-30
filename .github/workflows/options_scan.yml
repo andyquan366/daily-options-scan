@@ -45,6 +45,6 @@ jobs:
 
       - name: Upload files to Google Drive
         run: |
-          rclone copy output.xlsx "gdrive:/Investing/Daily top options/"
+          rclone copy option_activity_log.xlsx "gdrive:/Investing/Daily top options/"
 
 
