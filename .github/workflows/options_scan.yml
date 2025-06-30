@@ -29,10 +29,6 @@ jobs:
         run: |
           echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > credentials.json
 
-      - name: Run script
-        run: |
-          python daily_top_options.py
-
       - name: Install rclone
         run: |
           sudo apt-get update
@@ -43,8 +39,8 @@ jobs:
           mkdir -p ~/.config/rclone
           echo "${{ secrets.RCLONE_CONF_BASE64 }}" | base64 --decode > ~/.config/rclone/rclone.conf
 
-      - name: Upload files to Google Drive
+      - name: Run script
         run: |
-          rclone copy option_activity_log.xlsx "gdrive:/Investing/Daily top options/"
+          python daily_top_options.py
 
 
