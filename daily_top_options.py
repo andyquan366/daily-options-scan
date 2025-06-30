@@ -2,7 +2,7 @@ import os
 import pandas as pd
 
 # ====== 1. 拉取云端 Excel 覆盖本地（option_activity_log.xlsx）======
-os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./option_activity_log.xlsx --drive-chunk-size 64M --progress --ignore-times')
+os.system('rclone copy "gdrive:/Investing/Daily top options" ./option_activity_log.xlsx --drive-chunk-size 64M --progress --ignore-times')
 
 # ====== 2. 读取 Excel，若不存在则新建 DataFrame ======
 if os.path.exists('option_activity_log.xlsx'):
