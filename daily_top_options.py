@@ -14,7 +14,7 @@ from datetime import datetime
 
 # ==== 云端自动拉取最新 Excel ====
 
-    os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
+os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
 
 
 
@@ -409,4 +409,4 @@ for f in png_files:
         print(f"⚠️ 无法删除 {f}: {e}")
 
 
-    os.system('rclone copy ./option_activity_log.xlsx "gdrive:/Investing/Daily top options" --drive-chunk-size 64M --progress --ignore-times')
+os.system('rclone copy ./option_activity_log.xlsx "gdrive:/Investing/Daily top options" --drive-chunk-size 64M --progress --ignore-times')
