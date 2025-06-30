@@ -1,12 +1,7 @@
-name: Option Scanner (Google Sheets)
+name: Option Scan
 
 on:
-  schedule:
-    - cron: '0 0-23 * * 1-4'   # 周一～周四（蒙特利尔时间 00:00–23:00 每小时一次）
-    - cron: '0 0-20 * * 5'     # 周五（蒙特利尔时间 00:00–20:00 每小时一次）
-    - cron: '0 22-23 * * 0'    # 周日（蒙特利尔时间 18:00–19:00）
-    - cron: '0 0-3 * * 1'      # 周日（蒙特利尔时间 20:00–23:00，UTC已是周一）
-  workflow_dispatch:   # ✅ 允许手动触发
+  workflow_dispatch:
 
 jobs:
   run-script:
@@ -29,10 +24,6 @@ jobs:
         run: |
           echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > credentials.json
 
-      - name: Run script
-        run: |
-          python daily_top_options.py
-
       - name: Install rclone
         run: |
           sudo apt-get update
@@ -41,10 +32,8 @@ jobs:
       - name: Create rclone config file
         run: |
           mkdir -p ~/.config/rclone
-          echo "${{ secrets.RCLONE_CONF_BASE64 }}" | base64 --decode > ~/.config/rclone/rclone.conf
+          echo "${{ secrets.RCLONE_CONF_BASE64 }}" | base64 -d > ~/.config/rclone/rclone.conf
 
-      - name: Upload files to Google Drive
+      - name: Run script
         run: |
-          rclone copy option_activity_log.xlsx "gdrive:/Investing/Daily top options/"
-
-
+          python daily_top_options.py
