@@ -14,7 +14,7 @@ from datetime import datetime
 
 # ==== 云端自动拉取最新 Excel ====
 if os.environ.get("GITHUB_ACTIONS") == "true":
-    os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./option_activity_log.xlsx --drive-chunk-size 64M --progress --update')
+    os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
 
 
 
