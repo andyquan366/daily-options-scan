@@ -409,4 +409,4 @@ for f in png_files:
         print(f"⚠️ 无法删除 {f}: {e}")
 
 if os.environ.get("GITHUB_ACTIONS") == "true":
-    os.system('rclone copy ./option_activity_log.xlsx "gdrive:/Investing/Daily top options/option_activity_log.xlsx" --drive-chunk-size 64M --progress --update')
+    os.system('rclone copy ./option_activity_log.xlsx "gdrive:/Investing/Daily top options" --drive-chunk-size 64M --progress --ignore-times')
