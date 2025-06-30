@@ -12,6 +12,11 @@ from openpyxl.drawing.image import Image as XLImage
 import pytz
 from datetime import datetime
 
+# ==== 云端自动拉取最新 Excel ====
+if os.environ.get("GITHUB_ACTIONS") == "true":
+    os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./option_activity_log.xlsx --drive-chunk-size 64M --progress --update')
+
+
 
 print('📅 获取股票列表...')
 sp500 = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
@@ -402,3 +407,6 @@ for f in png_files:
         os.remove(f)
     except Exception as e:
         print(f"⚠️ 无法删除 {f}: {e}")
+
+if os.environ.get("GITHUB_ACTIONS") == "true":
+    os.system('rclone copy ./option_activity_log.xlsx "gdrive:/Investing/Daily top options/option_activity_log.xlsx" --drive-chunk-size 64M --progress --update')
