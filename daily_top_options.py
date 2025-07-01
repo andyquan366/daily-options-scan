@@ -230,7 +230,7 @@ if not os.path.exists(file_name):
     wb = Workbook()
     ws1 = wb.active
     ws1.title = month_sheet_name   # 改这里，改为年月名
-    ws1.freeze_panes = 'A2'
+    ws1.freeze_panes = 'D2'
     for r in dataframe_to_rows(df, index=False, header=True):
         ws1.append(r)
     ws1.append([])
@@ -243,7 +243,7 @@ else:
         ws1 = wb[month_sheet_name]
     else:
         ws1 = wb.create_sheet(month_sheet_name)
-    ws1.freeze_panes = 'A2'
+    ws1.freeze_panes = 'D2'
     ws1.append([])
     ws1.append([])
     for r in dataframe_to_rows(df, index=False, header=False):
