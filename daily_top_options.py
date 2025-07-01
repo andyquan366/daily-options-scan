@@ -340,14 +340,18 @@ ws2 = wb[year_sheet_name]
 
 # ✅ 给第二页 Score 列添加红绿背景，表示分数变化（只对比最近两行）
 score_col_index = [c.value for c in ws2[1]].index("Score") + 1
-for row in range(3, ws2.max_row + 1):  # 从第3行开始（第1行为表头，第2行为第一条数据）
-    prev_score = ws2.cell(row=row - 1, column=score_col_index).value
+prev_score = None
+
+for row in range(2, ws2.max_row + 1):  # 从第2行开始（表头是第1行）
     curr_score = ws2.cell(row=row, column=score_col_index).value
-    if isinstance(prev_score, int) and isinstance(curr_score, int):
+    if not isinstance(curr_score, int):
+        continue  # 跳过空行
+    if prev_score is not None:
         if curr_score > prev_score:
             ws2.cell(row=row, column=score_col_index).fill = PatternFill(start_color="C6EFCE", fill_type="solid")  # 绿
         elif curr_score < prev_score:
             ws2.cell(row=row, column=score_col_index).fill = PatternFill(start_color="FFC7CE", fill_type="solid")  # 红
+    prev_score = curr_score  # 更新为当前分数，供下一行比较
 
 
 wb.save(file_name)

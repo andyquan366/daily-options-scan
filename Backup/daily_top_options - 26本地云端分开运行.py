@@ -13,8 +13,8 @@ import pytz
 from datetime import datetime
 
 # ==== 云端自动拉取最新 Excel ====
-if os.environ.get("GITHUB_ACTIONS") == "true":
-    os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./option_activity_log.xlsx --drive-chunk-size 64M --progress --update')
+if "GITHUB_ACTIONS" in os.environ:
+    os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
 
 
 
@@ -408,5 +408,6 @@ for f in png_files:
     except Exception as e:
         print(f"⚠️ 无法删除 {f}: {e}")
 
-if os.environ.get("GITHUB_ACTIONS") == "true":
-    os.system('rclone copy ./option_activity_log.xlsx "gdrive:/Investing/Daily top options/option_activity_log.xlsx" --drive-chunk-size 64M --progress --update')
+
+if "GITHUB_ACTIONS" in os.environ:
+    os.system('rclone copy ./option_activity_log.xlsx "gdrive:/Investing/Daily top options" --drive-chunk-size 64M --progress --ignore-times')
