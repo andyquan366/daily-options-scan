@@ -14,7 +14,7 @@ now = datetime.now(tz)
 today_str = now.strftime("%Y-%m-%d")
 file_name = "option_activity_log.xlsx"
 
-wb = load_workbook(file_name, read_only=False, data_only=True)
+wb = load_workbook(file_name)
 sheet_names = wb.sheetnames
 
 def is_month_sheet(name):
@@ -24,21 +24,32 @@ def is_month_sheet(name):
     except:
         return False
 
+min_date = input("请输入补齐起始日期 (yyyy-mm-dd，留空不限制)：").strip()
+max_date = input("请输入补齐截止日期 (yyyy-mm-dd，留空不限制)：").strip()
+
 for sheet_name in sheet_names:
     if not is_month_sheet(sheet_name):
         continue
-    df = pd.read_excel(file_name, sheet_name=sheet_name)
+    ws = wb[sheet_name]
+    df = pd.read_excel(file_name, sheet_name=sheet_name, dtype=str)
+    df_date = pd.to_datetime(df["Date"]).dt.strftime("%Y-%m-%d")
+
     if "Previous Close" not in df.columns:
-        df["Previous Close"] = None
+        print(f"⚠️ Sheet {sheet_name} 缺少 'Previous Close' 列，跳过")
+        continue
+
+    header = list(df.columns)
+    col_index = header.index("Previous Close") + 1  # openpyxl 从1开始
+    date_index = header.index("Date")
+    ticker_index = header.index("Ticker")
 
     fill_count = 0
-    for idx, row in df.iterrows():
-        row_date = str(row["Date"])[:10]
+    for i, row in df.iterrows():
+        row_date = df_date[i]
         ticker = row["Ticker"]
+        prev_close_cell = ws.cell(row=i+2, column=col_index)
 
-        if pd.isna(ticker) or row_date == today_str:
-            continue
-        if pd.notna(row["Previous Close"]):
+        if pd.isna(ticker) or row_date == today_str or prev_close_cell.value not in [None, "", "nan"]:
             continue
 
         back_offset = 0
@@ -61,15 +72,15 @@ for sheet_name in sheet_names:
             back_offset += 1
 
         if prev_close is not None:
-            df.at[idx, "Previous Close"] = prev_close
+            prev_close_cell.value = prev_close
             fill_count += 1
-
-    with pd.ExcelWriter(file_name, mode="a", if_sheet_exists="replace", engine="openpyxl") as writer:
-        df.to_excel(writer, sheet_name=sheet_name, index=False)
 
     print(f"✅ Sheet {sheet_name}: 补齐 Previous Close 共 {fill_count} 条")
 
-print("✅ 所有历史 Previous Close 均已补齐（今天除外，周末和节假日自动回溯至最近交易日）")
+# ✅ 保存不会破坏格式
+wb.save(file_name)
+
+print("✅ 所有历史 Previous Close 均已补齐（今天除外，格式无破坏）")
 
 # ==== 云端自动上传 Excel ====
 if "GITHUB_ACTIONS" in os.environ:
