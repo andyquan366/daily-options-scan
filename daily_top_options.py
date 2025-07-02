@@ -199,7 +199,7 @@ for ticker in tickers:
                 'IV Skew': iv_skew,'Volume Diff Ratio': round(volume_diff_ratio, 4), 
                 'Put/Call Ratio': put_call_ratio, 'Score': total_score,
                 'Sentiment': sentiment, 'Contract Symbol': top_option['contractSymbol'],
-                'Price Change': price_change, '7D Change': price_change_7d})
+                'Close': last_price, 'Price Change': price_change, '7D Change': price_change_7d})
 
         volume_summary[ticker] = total_volume
 
