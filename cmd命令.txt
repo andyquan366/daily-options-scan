@@ -1,3 +1,7 @@
 e:
 cd E:\Investing\daily_top_options
 daily_top_options.py
+
+e:
+cd E:\Investing\daily_top_options
+fill_3d_forward_change.py
