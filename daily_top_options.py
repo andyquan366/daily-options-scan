@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from openpyxl.drawing.image import Image as XLImage
 import pytz
 from datetime import datetime
+from datetime import timedelta
 
 # ==== 云端自动拉取最新 Excel ====
 if "GITHUB_ACTIONS" in os.environ:
@@ -45,23 +46,29 @@ records = []
 volume_summary = {}
 
 
+# 模块顶层定义，循环外
+def get_recent_close(stock, ref_date, max_lookback=7):
+    for i in range(max_lookback):
+        start_date = ref_date - timedelta(days=i+1)
+        end_date = ref_date + timedelta(days=1)
+        hist = stock.history(start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'))
+        if not hist.empty:
+            return hist['Close'].iloc[-1]
+    return None
+
+# 循环开始
 for ticker in tickers:
     print(f'▶ 正在处理 {ticker} ...')
     try:
         stock = yf.Ticker(ticker)
-        stock._history = {}         # ✅ 清除缓存，确保重新抓取历史价格
-        stock._options = None       # ✅ 清除缓存，确保 option_chain 是最新的
+        stock._history = {}         # 清缓存
+        stock._options = None       # 清缓存
         expiry_dates = stock.options
 
+        # 获取昨天（或最近交易日）的收盘价
+        close_price = get_recent_close(stock, yesterday)
 
-        # ✅ 获取“昨天的收盘价”作为Close列（无论当前时间是什么时候）
-        hist_close = stock.history(start=yesterday.strftime('%Y-%m-%d'), end=today.strftime('%Y-%m-%d'))
-        if not hist_close.empty:
-            close_price = hist_close['Close'].iloc[-1]
-        else:
-            close_price = None
-
-# ✅ 计算涨跌幅（百分比）
+        # ✅ 计算涨跌幅（百分比）
         hist = stock.history(period='2d')
         if len(hist) >= 2:
             prev_close = hist['Close'].iloc[-2]
