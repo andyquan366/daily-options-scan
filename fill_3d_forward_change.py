@@ -1,22 +1,15 @@
 import pandas as pd
 from datetime import datetime, timedelta
-import os
-import pytz
+import yfinance as yf
 from openpyxl import load_workbook
 
-# ==== 云端自动拉取最新 Excel ====
-if "GITHUB_ACTIONS" in os.environ:
-    os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
-
-# ✅ Toronto 时间
-tz = pytz.timezone("America/Toronto")
-now = datetime.now(tz)
-today = now.date()
-yesterday = today - timedelta(days=1)
-target_day = today - timedelta(days=3)
+# 设定关键日期
+target_day_str = "2025-06-29"
+target_day = datetime.strptime(target_day_str, "%Y-%m-%d").date()
+forward_day = target_day + timedelta(days=3)  # 2025-07-02
 
 file_name = "option_activity_log.xlsx"
-wb = load_workbook(file_name, read_only=False, data_only=True)
+wb = load_workbook(file_name)
 sheet_names = wb.sheetnames
 
 def is_month_sheet(name):
@@ -26,56 +19,63 @@ def is_month_sheet(name):
     except:
         return False
 
-# ✅ Step 1：合并所有sheet用于匹配
-df_all_list = []
-for sheet_name in sheet_names:
-    if is_month_sheet(sheet_name):
-        df_tmp = pd.read_excel(file_name, sheet_name=sheet_name)
-        df_tmp["SheetName"] = sheet_name
-        df_all_list.append(df_tmp)
-df_all = pd.concat(df_all_list, ignore_index=True)
-df_all["Date"] = pd.to_datetime(df_all["Date"]).dt.date
+# 只处理 target_day 所在的 sheet（示例只处理2025-06）
+sheet_name = target_day.strftime("%Y-%m")
+if sheet_name not in sheet_names:
+    raise ValueError(f"找不到目标sheet {sheet_name}")
 
-fill_total = 0
-for sheet_name in sheet_names:
-    if not is_month_sheet(sheet_name):
+ws = wb[sheet_name]
+header = [cell.value for cell in ws[1]]
+date_col = header.index("Date") + 1
+ticker_col = header.index("Ticker") + 1
+close_col = header.index("Previous Close") + 1
+change_col = header.index("3D Forward Change") + 1
+
+# 读取所有6月29日行的ticker和价格
+rows_to_update = []
+tickers = []
+for r in range(2, ws.max_row + 1):
+    date_cell = ws.cell(row=r, column=date_col).value
+    if not date_cell:
         continue
+    row_date = pd.to_datetime(date_cell).date()
+    if row_date != target_day:
+        continue
+    ticker = ws.cell(row=r, column=ticker_col).value
+    price_3ago = ws.cell(row=r, column=close_col).value
+    if not ticker or not price_3ago:
+        continue
+    ticker_str = str(ticker).strip().upper()
+    tickers.append(ticker_str)
+    rows_to_update.append((r, price_3ago, ticker_str))
 
-    df = pd.read_excel(file_name, sheet_name=sheet_name)
-    df["Date"] = pd.to_datetime(df["Date"]).dt.date
+# 用yfinance批量下载forward_day的收盘价
+tickers_str = " ".join(tickers)
+data = yf.download(tickers_str, start=forward_day, end=forward_day + timedelta(days=1), progress=False, group_by='ticker')
 
-    if "3D Forward Change" not in df.columns:
-        df["3D Forward Change"] = None
+# yfinance返回数据格式复杂，兼容单一ticker和多个ticker情况
+def get_close(ticker):
+    try:
+        if len(tickers) == 1:
+            # 单ticker时data是DataFrame
+            return data['Close'].iloc[0]
+        else:
+            return data[ticker]['Close'].iloc[0]
+    except Exception:
+        return None
 
-    # ✅ 只补今天-3天的数据，不回溯
-    mask = df["Date"] == target_day
-    fill_count = 0
+# 计算并写入3D Forward Change
+fill_count = 0
+for r, price_3ago, ticker_str in rows_to_update:
+    price_3later = get_close(ticker_str)
+    if price_3later is None or price_3later == 0:
+        print(f"⚠️ {ticker_str} {forward_day} 无收盘价，跳过")
+        continue
+    change = (price_3later - price_3ago) / price_3ago
+    ws.cell(row=r, column=change_col).value = round(change, 4)
+    ws.cell(row=r, column=change_col).number_format = "0.00%"
+    fill_count += 1
 
-    for i in df.index[mask]:
-        row = df.loc[i]
-        ticker = row["Ticker"]
-        price_3ago = row["Previous Close"]
+print(f"✅ 补齐 {target_day} Forward Change 共 {fill_count} 条")
 
-        match = df_all[(df_all["Ticker"] == ticker) & (df_all["Date"] == yesterday)]
-        if not match.empty:
-            price_3later = match.iloc[0]["Previous Close"]
-            if price_3ago and price_3later and not pd.isna(price_3ago) and not pd.isna(price_3later):
-                try:
-                    change = (price_3later - price_3ago) / price_3ago
-                    df.at[i, "3D Forward Change"] = round(change, 4)
-                    fill_count += 1
-                except Exception as e:
-                    print(f"❌ Error for {ticker}: {e}")
-
-    fill_total += fill_count
-
-    with pd.ExcelWriter(file_name, mode="a", if_sheet_exists="replace", engine="openpyxl") as writer:
-        df.to_excel(writer, sheet_name=sheet_name, index=False)
-
-    print(f"✅ Sheet {sheet_name}: 补齐日期 {target_day.strftime('%Y-%m-%d')} 共 {fill_count} 条 3D Forward Change")
-
-print(f"✅ 所有 sheet 补齐完成，共 {fill_total} 条 3D Forward Change")
-
-# ==== 云端上传 ====
-if "GITHUB_ACTIONS" in os.environ:
-    os.system('rclone copy ./option_activity_log.xlsx "gdrive:/Investing/Daily top options" --drive-chunk-size 64M --progress --ignore-times')
+wb.save(file_name)

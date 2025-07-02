@@ -1,4 +1,3 @@
-import pandas as pd
 import pytz
 from datetime import datetime, timedelta
 import yfinance as yf
@@ -30,57 +29,64 @@ max_date = input("请输入补齐截止日期 (yyyy-mm-dd，留空不限制)："
 for sheet_name in sheet_names:
     if not is_month_sheet(sheet_name):
         continue
-    ws = wb[sheet_name]
-    df = pd.read_excel(file_name, sheet_name=sheet_name, dtype=str)
-    df_date = pd.to_datetime(df["Date"]).dt.strftime("%Y-%m-%d")
 
-    if "Previous Close" not in df.columns:
-        print(f"⚠️ Sheet {sheet_name} 缺少 'Previous Close' 列，跳过")
+    ws = wb[sheet_name]
+    header = [cell.value for cell in ws[1]]
+    if "Previous Close" not in header or "Date" not in header or "Ticker" not in header:
+        print(f"⚠️ Sheet {sheet_name} 缺少必要列，跳过")
         continue
 
-    header = list(df.columns)
-    col_index = header.index("Previous Close") + 1  # openpyxl 从1开始
-    date_index = header.index("Date")
-    ticker_index = header.index("Ticker")
+    date_col = header.index("Date") + 1
+    ticker_col = header.index("Ticker") + 1
+    close_col = header.index("Previous Close") + 1
 
     fill_count = 0
-    for i, row in df.iterrows():
-        row_date = df_date[i]
-        ticker = row["Ticker"]
-        prev_close_cell = ws.cell(row=i+2, column=col_index)
+    for r in range(2, ws.max_row + 1):
+        date_cell = ws.cell(row=r, column=date_col).value
+        ticker = ws.cell(row=r, column=ticker_col).value
+        close_cell = ws.cell(row=r, column=close_col)
 
-        if pd.isna(ticker) or row_date == today_str or prev_close_cell.value not in [None, "", "nan"]:
+        if not ticker or not date_cell or str(close_cell.value).strip() not in ["", "None", "nan"]:
             continue
 
+        row_date_str = str(date_cell)[:10]
+        if row_date_str == today_str:
+            continue
+
+        if min_date and row_date_str < min_date:
+            continue
+        if max_date and row_date_str > max_date:
+            continue
+
+        stock_symbol = str(ticker).strip()
         back_offset = 0
         prev_close = None
         while back_offset < 7 and prev_close is None:
-            search_date = (datetime.strptime(row_date, "%Y-%m-%d") - timedelta(days=back_offset)).strftime("%Y-%m-%d")
-            stock = yf.Ticker(ticker)
+            search_date = (datetime.strptime(row_date_str, "%Y-%m-%d") - timedelta(days=back_offset)).strftime("%Y-%m-%d")
             try:
+                stock = yf.Ticker(stock_symbol)
                 hist = stock.history(
                     start=search_date,
                     end=(datetime.strptime(search_date, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
                 )
                 if not hist.empty:
                     prev_close = float(hist['Close'].iloc[0])
-                    print(f"✅ {ticker}: got close {prev_close} ({search_date} for {row_date})")
+                    print(f"✅ {stock_symbol}: got close {prev_close} ({search_date} for {row_date_str})")
                 else:
-                    print(f"⏩ {ticker}: no price ({search_date} for {row_date}), try previous day")
+                    print(f"⏩ {stock_symbol}: no price ({search_date} for {row_date_str}), try previous day")
             except Exception as e:
-                print(f"❌ {ticker}: {e} ({search_date} for {row_date})")
+                print(f"❌ {stock_symbol}: {e} ({search_date} for {row_date_str})")
             back_offset += 1
 
         if prev_close is not None:
-            prev_close_cell.value = prev_close
+            close_cell.value = prev_close
+            close_cell.number_format = "0.00"  # 设置为两位小数
             fill_count += 1
 
     print(f"✅ Sheet {sheet_name}: 补齐 Previous Close 共 {fill_count} 条")
 
-# ✅ 保存不会破坏格式
 wb.save(file_name)
-
-print("✅ 所有历史 Previous Close 均已补齐（今天除外，格式无破坏）")
+print("✅ 所有历史 Previous Close 均已补齐（今天除外，格式不破坏）")
 
 # ==== 云端自动上传 Excel ====
 if "GITHUB_ACTIONS" in os.environ:
