@@ -387,7 +387,7 @@ for date_val in unique_dates:
     x = day_data['Time']
     y = day_data['Score']
 
-    plt.figure(figsize=(10,3))
+    plt.figure(figsize=(10,2))
     plt.plot(x, y, marker='o', linestyle='-')
     plt.title(f'Score on {date_val}')
     plt.xlabel('Time')
