@@ -54,6 +54,13 @@ for ticker in tickers:
         expiry_dates = stock.options
 
 
+        # ✅ 获取“昨天的收盘价”作为Close列（无论当前时间是什么时候）
+        hist_close = stock.history(start=yesterday.strftime('%Y-%m-%d'), end=today.strftime('%Y-%m-%d'))
+        if not hist_close.empty:
+            close_price = hist_close['Close'].iloc[-1]
+        else:
+            close_price = None
+
 # ✅ 计算涨跌幅（百分比）
         hist = stock.history(period='2d')
         if len(hist) >= 2:
@@ -199,7 +206,7 @@ for ticker in tickers:
                 'IV Skew': iv_skew,'Volume Diff Ratio': round(volume_diff_ratio, 4), 
                 'Put/Call Ratio': put_call_ratio, 'Score': total_score,
                 'Sentiment': sentiment, 'Contract Symbol': top_option['contractSymbol'],
-                'Close': last_price, 'Price Change': price_change, '7D Change': price_change_7d})
+                'Previous Close': close_price, 'Price Change': price_change, '7D Change': price_change_7d})
 
         volume_summary[ticker] = total_volume
 
