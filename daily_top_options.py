@@ -13,6 +13,13 @@ import pytz
 from datetime import datetime
 from datetime import timedelta
 
+tz = pytz.timezone("America/Toronto")  # 先定义 tz
+
+now = datetime.now(tz)                 # 然后才能用 tz
+today = now.date()
+yesterday = today - timedelta(days=1)
+
+
 # ==== 云端自动拉取最新 Excel ====
 if "GITHUB_ACTIONS" in os.environ:
     os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
