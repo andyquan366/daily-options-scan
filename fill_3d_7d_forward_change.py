@@ -54,7 +54,7 @@ for sheet_name in wb.sheetnames:
         continue
     print(f"开始处理工作表: {sheet_name}")
     ws = wb[sheet_name]
-    header = [cell.value for cell in ws[1]]
+    header = [str(cell.value).strip() if cell.value is not None else '' for cell in ws[1]]
     # 加打印列标题
     print(f"工作表 {sheet_name} 的第一行列标题是: {header}")
 
