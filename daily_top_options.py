@@ -74,6 +74,8 @@ for ticker in tickers:
 
         # 获取昨天（或最近交易日）的收盘价
         close_price = get_recent_close(stock, yesterday)
+        if close_price is not None:
+            close_price = round(close_price, 2)
 
         # ✅ 计算涨跌幅（百分比）
         hist = stock.history(period='2d')
