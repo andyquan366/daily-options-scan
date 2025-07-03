@@ -28,4 +28,4 @@ jobs:
           echo "${{ secrets.GOOGLE_CREDENTIALS_JSON_BASE64 }}" | base64 -d > credentials.json
       - name: Run python update_etf_prices.py
         run: |
-          Run update_etf_prices.py
+          python update_etf_prices.py
