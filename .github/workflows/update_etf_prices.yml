@@ -12,42 +12,25 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
-      - name: Show Python and pip info before install
-        run: |
-          python --version
-          which python
-          python -m pip --version
-          which pip
-          python -m pip list
-
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install --force-reinstall yfinance pandas google-auth google-auth-httplib2 google-api-python-client
-          python -m pip list
-
-      - name: Show Python and pip info after install
+          pip install -r requirements.txt
+      - name: Create credential file
         run: |
-          python --version
-          which python
-          python -m pip --version
-          which pip
-          python -m pip list
-
-      - name: Verify google-auth import
+          echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > credentials.json
+      - name: Install rclone
         run: |
-          python -c "from google.oauth2.service_account import Credentials; print('google.oauth2 import OK')"
-
-      - name: Create credentials file
-        run: echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > credentials.json
-
-      - name: Show credentials file head
-        run: head -20 credentials.json
-
+          sudo apt-get update
+          sudo apt-get install -y rclone
+      - name: Create rclone config file
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "${{ secrets.RCLONE_CONF_BASE64 }}" | base64 --decode > ~/.config/rclone/rclone.conf
       - name: Run update_etf_prices.py
-        run: python update_etf_prices.py
+        run: |
+          Run update_etf_prices.py
