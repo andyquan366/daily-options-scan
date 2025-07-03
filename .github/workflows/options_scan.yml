@@ -1,4 +1,4 @@
-name: Option Scanner (Before 20PM)
+name: Option Scanner
 on:
   schedule:
     - cron: '30 * * * *'
