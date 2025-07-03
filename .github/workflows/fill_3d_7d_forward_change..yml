@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  fill_previous_close:
+  fill_3d_7d_forward_change:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -39,5 +39,6 @@ jobs:
         run: |
           echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > credentials.json
 
-      - name: Run fill_3d_7d_forward_change script
-        run: python fill_3d_7d_forward_change.py
+      - name: Run fill_3d_7d_forward_change.py
+        run: |
+          python fill_3d_7d_forward_change.py

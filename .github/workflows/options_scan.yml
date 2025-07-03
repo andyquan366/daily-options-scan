@@ -37,7 +37,7 @@ jobs:
           mkdir -p ~/.config/rclone
           echo "${{ secrets.RCLONE_CONF_BASE64 }}" | base64 --decode > ~/.config/rclone/rclone.conf
 
-      - name: Run script
+      - name: Run python daily_top_options.py
         run: |
           python daily_top_options.py
 
