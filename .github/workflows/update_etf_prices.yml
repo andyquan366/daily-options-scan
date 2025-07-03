@@ -2,7 +2,7 @@ name: Update ETF Price
 
 on:
   schedule:
-    - cron: '*/15 * * * 0-5'
+    - cron: '0 * * * 0-5'
   workflow_dispatch:
 
 jobs:
