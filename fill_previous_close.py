@@ -50,8 +50,6 @@ for sheet_name in sheet_names:
             continue
 
         row_date_str = str(date_cell)[:10]
-        if row_date_str == today_str:
-            continue
 
         if min_date and row_date_str < min_date:
             continue
