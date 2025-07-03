@@ -3,20 +3,12 @@ from datetime import datetime, timedelta
 import yfinance as yf
 from openpyxl import load_workbook
 import re
-import pytz
-import os
-
-# ==== 云端自动拉取最新 Excel ====
-if "GITHUB_ACTIONS" in os.environ:
-    os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
 
 file_name = "option_activity_log.xlsx"
 wb = load_workbook(file_name)
 
-# 统一用 Toronto 时区时间，避免本地云端时间差异
-tz = pytz.timezone("America/Toronto")
-now = datetime.now(tz)
-today = now.date()
+# 设置基准日为昨天
+today = datetime.today().date()
 base_day = today - timedelta(days=1)
 
 pattern = re.compile(r"^\d{4}-\d{2}$")  # 匹配 yyyy-mm 格式
@@ -54,15 +46,10 @@ for sheet_name in wb.sheetnames:
         continue
     print(f"开始处理工作表: {sheet_name}")
     ws = wb[sheet_name]
-    header = [str(cell.value).strip() if cell.value is not None else '' for cell in ws[1]]
-    # 加打印列标题
-    print(f"工作表 {sheet_name} 的第一行列标题是: {header}")
-
+    header = [cell.value for cell in ws[1]]
+    # 确保列存在
     required_cols = ["Date", "Ticker", "Previous Close", "3D Forward Change", "7D Forward Change"]
-    
-    missing_cols = [col for col in required_cols if col not in header]
-    if missing_cols:
-        print(f"缺失的列: {missing_cols}")
+    if any(col not in header for col in required_cols):
         print(f"工作表 {sheet_name} 缺少必要列，跳过")
         continue
 
@@ -151,7 +138,5 @@ for sheet_name in wb.sheetnames:
 
     print(f"工作表 {sheet_name} 补齐结果：3D共 {count_3d} 条，7D共 {count_7d} 条")
 
+wb.save(file_name)
 print("补齐完成")
-if "GITHUB_ACTIONS" in os.environ:
-    os.system('rclone copy ./option_activity_log.xlsx "gdrive:/Investing/Daily top options" --drive-chunk-size 64M --progress --ignore-times')
-
