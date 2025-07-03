@@ -47,9 +47,14 @@ for sheet_name in wb.sheetnames:
     print(f"开始处理工作表: {sheet_name}")
     ws = wb[sheet_name]
     header = [cell.value for cell in ws[1]]
-    # 确保列存在
+    # 加打印列标题
+    print(f"工作表 {sheet_name} 的第一行列标题是: {header}")
+
     required_cols = ["Date", "Ticker", "Previous Close", "3D Forward Change", "7D Forward Change"]
-    if any(col not in header for col in required_cols):
+    
+    missing_cols = [col for col in required_cols if col not in header]
+    if missing_cols:
+        print(f"缺失的列: {missing_cols}")
         print(f"工作表 {sheet_name} 缺少必要列，跳过")
         continue
 
