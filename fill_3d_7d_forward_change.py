@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import yfinance as yf
 from openpyxl import load_workbook
 import re
-
+import pytz
 import os
 
 # ==== 云端自动拉取最新 Excel ====
@@ -13,8 +13,10 @@ if "GITHUB_ACTIONS" in os.environ:
 file_name = "option_activity_log.xlsx"
 wb = load_workbook(file_name)
 
-# 设置基准日为昨天
-today = datetime.today().date()
+# 统一用 Toronto 时区时间，避免本地云端时间差异
+tz = pytz.timezone("America/Toronto")
+now = datetime.now(tz)
+today = now.date()
 base_day = today - timedelta(days=1)
 
 pattern = re.compile(r"^\d{4}-\d{2}$")  # 匹配 yyyy-mm 格式
