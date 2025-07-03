@@ -2,14 +2,14 @@ import os
 import time
 from openpyxl import load_workbook
 
-file_name = "option_activity_log.xlsx"
-sheet_name = "2025-06"
+
 
 # ==== 云端自动拉取最新 Excel ====
 if "GITHUB_ACTIONS" in os.environ:
-    print("开始从 Google Drive 拉取文件...")
-    ret = os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
-    print(f"rclone 返回码: {ret}")
+    os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
+
+file_name = "option_activity_log.xlsx"
+sheet_name = "2025-06"
 
 def wait_for_file_stable(filename, wait_seconds=15, interval=1):
     last_size = -1
