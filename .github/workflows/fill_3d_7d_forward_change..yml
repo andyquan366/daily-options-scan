@@ -3,7 +3,8 @@ name: fill_3d_7d_forward_change
 on:
   schedule:
     - cron: '0 6 * * 0-5'  # 周日到周五，每天凌晨6点执行
-  workflow_dispatch:
+
+  workflow_dispatch:   # ✅ 允许手动触发
 
 jobs:
   fill_3d_7d_forward_change:

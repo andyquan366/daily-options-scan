@@ -1,9 +1,8 @@
-
 name: Option Scanner (0-20)
+
 on:
   schedule:
     - cron: '30 * * * 0-5'
-
 
   workflow_dispatch:   # ✅ 允许手动触发
 

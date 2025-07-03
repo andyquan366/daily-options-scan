@@ -3,7 +3,8 @@ name: Update ETF Price
 on:
   schedule:
     - cron: '0 * * * 0-5'
-  workflow_dispatch:
+
+  workflow_dispatch:   # ✅ 允许手动触发
 
 jobs:
   run-script:
