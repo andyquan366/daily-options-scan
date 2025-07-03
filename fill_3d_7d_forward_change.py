@@ -10,6 +10,8 @@ import os
 if "GITHUB_ACTIONS" in os.environ:
     os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
 
+file_name = "option_activity_log.xlsx"
+wb = load_workbook(file_name)
 
 # 设置基准日为昨天
 today = datetime.today().date()
