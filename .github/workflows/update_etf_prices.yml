@@ -7,20 +7,27 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-          pip list
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip list
 
       - name: Create credential file
         run: echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > credentials.json
+
+      - name: Check python version
+        run: python --version
 
       - name: Run update_etf_prices.py
         run: python update_etf_prices.py
