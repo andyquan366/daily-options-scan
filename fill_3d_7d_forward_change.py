@@ -154,4 +154,3 @@ for sheet_name in wb.sheetnames:
 print("补齐完成")
 if "GITHUB_ACTIONS" in os.environ:
     os.system('rclone copy ./option_activity_log.xlsx "gdrive:/Investing/Daily top options" --drive-chunk-size 64M --progress --ignore-times')
-
