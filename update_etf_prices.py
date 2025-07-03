@@ -27,18 +27,17 @@ def fetch_prices(tickers):
 
 def write_prices_to_sheet_split(prices):
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-    SERVICE_ACCOUNT_FILE = 'service_account.json'
+    SERVICE_ACCOUNT_FILE = 'credentials.json'  # 这里用workflow的凭证文件名
 
     creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     service = build('sheets', 'v4', credentials=creds)
 
     SPREADSHEET_ID = '1Rfs87zMtB9hyhkRiW1UGnAuNeLjQEcb_-9yRtLjRATI'
 
-    # 分两段写入
     ranges = ['Sheet1!F14:F15', 'Sheet1!F18:F22']
     values_list = [
-        [[prices[0]], [prices[1]]],  # 前两个价格写入 F14, F15
-        [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]]  # 后五个价格写入 F18-F22
+        [[prices[0]], [prices[1]]],
+        [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]]
     ]
 
     for rng, vals in zip(ranges, values_list):
