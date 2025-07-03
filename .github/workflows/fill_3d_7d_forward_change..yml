@@ -2,7 +2,7 @@ name: fill_3d_7d_forward_change
 
 on:
   schedule:
-    - cron: '0 5 * * 0-5'  # 周日到周五，每天凌晨2点执行
+    - cron: '0 5 * * 0-5'  # 周日到周五，每天凌晨5点执行
   workflow_dispatch:
 
 jobs:
