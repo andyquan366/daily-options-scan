@@ -1,7 +1,7 @@
 name: Option Scanner (Google Sheets)
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '30 * * * *'
 
 
   workflow_dispatch:   # ✅ 允许手动触发
