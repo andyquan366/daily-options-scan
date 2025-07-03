@@ -1,4 +1,4 @@
-name: Fill Previous Close
+name: fill_3d_7d_forward_change
 
 on:
   schedule:
