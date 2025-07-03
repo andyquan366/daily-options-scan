@@ -1,4 +1,4 @@
-name: Option Scanner (Google Sheets)
+name: Option Scanner (After 20PM)
 on:
   schedule:
     - cron: '30 0-3 * * *'
