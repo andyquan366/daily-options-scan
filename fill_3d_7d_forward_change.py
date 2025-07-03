@@ -4,6 +4,14 @@ import yfinance as yf
 from openpyxl import load_workbook
 import re
 
+
+
+print("脚本已启动")
+import os
+print("当前工作目录:", os.getcwd())
+print("目录文件列表:", os.listdir())
+print("文件大小:", os.path.getsize("option_activity_log.xlsx"))
+
 file_name = "option_activity_log.xlsx"
 wb = load_workbook(file_name)
 
