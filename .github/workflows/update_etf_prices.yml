@@ -17,21 +17,37 @@ jobs:
         with:
           python-version: 3.11
 
-      - name: Debug python environment
+      - name: Show Python and pip info before install
         run: |
           python --version
           which python
           python -m pip --version
+          which pip
           python -m pip list
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
+          python -m pip install --force-reinstall yfinance pandas google-auth google-auth-httplib2 google-api-python-client
           python -m pip list
 
-      - name: Create credential file
+      - name: Show Python and pip info after install
+        run: |
+          python --version
+          which python
+          python -m pip --version
+          which pip
+          python -m pip list
+
+      - name: Verify google-auth import
+        run: |
+          python -c "from google.oauth2.service_account import Credentials; print('google.oauth2 import OK')"
+
+      - name: Create credentials file
         run: echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > credentials.json
+
+      - name: Show credentials file head
+        run: head -20 credentials.json
 
       - name: Run update_etf_prices.py
         run: python update_etf_prices.py
