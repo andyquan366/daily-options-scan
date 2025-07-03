@@ -79,7 +79,7 @@ for sheet_name in sheet_names:
             back_offset += 1
 
         if prev_close is not None:
-            close_cell.value = prev_close
+            close_cell.value = round(prev_close, 2)
             close_cell.number_format = "0.00"  # 设置为两位小数
             fill_count += 1
 
