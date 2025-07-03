@@ -20,6 +20,7 @@ def fetch_prices(tickers):
             data = t.history(period="1d")
             price = data['Close'].iloc[-1]
             price_rounded = round(price, 2)
+            prices.append(price_rounded)
         except Exception as e:
             print(f"Error fetching {ticker}: {e}")
             prices.append(None)
