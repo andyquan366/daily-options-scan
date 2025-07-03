@@ -1,4 +1,5 @@
 import os
+import time
 from openpyxl import load_workbook
 
 file_name = "option_activity_log.xlsx"
@@ -6,9 +7,30 @@ sheet_name = "2025-06"
 
 # ==== 云端自动拉取最新 Excel ====
 if "GITHUB_ACTIONS" in os.environ:
-    print("开始用 rclone 拉取最新 Excel 文件...")
+    print("开始从 Google Drive 拉取文件...")
     ret = os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
     print(f"rclone 返回码: {ret}")
+
+def wait_for_file_stable(filename, wait_seconds=15, interval=1):
+    last_size = -1
+    stable_count = 0
+    for _ in range(wait_seconds // interval):
+        try:
+            size = os.path.getsize(filename)
+            if size == last_size:
+                stable_count += 1
+                if stable_count >= 3:
+                    return True
+            else:
+                stable_count = 0
+            last_size = size
+        except Exception as e:
+            print(f"检查文件大小异常: {e}")
+        time.sleep(interval)
+    return False
+
+if not wait_for_file_stable(file_name):
+    print("警告：文件大小未稳定，可能未写入完成")
 
 if not os.path.exists(file_name):
     print(f"文件 {file_name} 不存在，退出")
@@ -30,5 +52,5 @@ if sheet_name not in wb.sheetnames:
 
 ws = wb[sheet_name]
 
-header = [cell.value for cell in ws[1]]
+header = [str(cell.value).strip() if cell.value is not None else '' for cell in ws[1]]
 print(f"工作表 {sheet_name} 第一行列标题: {header}")
