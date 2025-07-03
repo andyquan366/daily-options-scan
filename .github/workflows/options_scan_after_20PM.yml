@@ -1,7 +1,7 @@
 name: Option Scanner (After 20PM)
 on:
   schedule:
-    - cron: '30 0-3 * * *'
+    - cron: '0 0-3 * * *'
 
 
   workflow_dispatch:   # ✅ 允许手动触发
