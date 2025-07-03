@@ -4,16 +4,12 @@ import yfinance as yf
 from openpyxl import load_workbook
 import re
 
-
-
-print("脚本已启动")
 import os
-print("当前工作目录:", os.getcwd())
-print("目录文件列表:", os.listdir())
-print("文件大小:", os.path.getsize("option_activity_log.xlsx"))
 
-file_name = "option_activity_log.xlsx"
-wb = load_workbook(file_name)
+# ==== 云端自动拉取最新 Excel ====
+if "GITHUB_ACTIONS" in os.environ:
+    os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
+
 
 # 设置基准日为昨天
 today = datetime.today().date()
@@ -151,5 +147,7 @@ for sheet_name in wb.sheetnames:
 
     print(f"工作表 {sheet_name} 补齐结果：3D共 {count_3d} 条，7D共 {count_7d} 条")
 
-wb.save(file_name)
 print("补齐完成")
+if "GITHUB_ACTIONS" in os.environ:
+    os.system('rclone copy ./option_activity_log.xlsx "gdrive:/Investing/Daily top options" --drive-chunk-size 64M --progress --ignore-times')
+
