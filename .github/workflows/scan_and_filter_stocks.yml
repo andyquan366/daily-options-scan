@@ -7,7 +7,7 @@ on:
   workflow_dispatch:   # ✅ 允许手动触发
 
 jobs:
-  fill_3d_7d_forward_change:
+  scan_and_filter_stocks:
     runs-on: ubuntu-latest
 
     steps:
