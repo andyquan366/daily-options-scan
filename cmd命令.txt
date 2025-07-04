@@ -9,3 +9,7 @@ fill_3d_7d_forward_change.py
 e:
 cd E:\Investing\daily_top_options
 fill_previous_close.py
+
+e:
+cd E:\Investing\daily_top_options
+scan_and_filter_stocks.py
