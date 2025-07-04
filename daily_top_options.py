@@ -256,7 +256,7 @@ if not os.path.exists(file_name):
     ws1.freeze_panes = 'D2'
     for r in dataframe_to_rows(df, index=False, header=True):
         ws1.append(r)
-    # 不要加空行！！！
+    # 不要加空行！！！（此时没有格式问题，月sheet可以直接写入）
     ws2 = wb.create_sheet(title=year_sheet_name)
     ws2.append(["Date", "Time", "Strong Bullish", "Bullish", "Neutral", "Bearish", "Strong Bearish", "Score"])
 else:
@@ -264,8 +264,10 @@ else:
     if month_sheet_name in wb.sheetnames:
         ws1 = wb[month_sheet_name]
         # ★ 只在追加数据前加空行，不要加表头
-        ws1.append([])
-        ws1.append([])
+        # 用 insert_rows() 插入纯净空行，避免格式继承
+        last_data_row = ws1.max_row  # 获取最后一行
+        ws1.insert_rows(last_data_row + 1)  # 插入空行
+        ws1.insert_rows(last_data_row + 1)  # 插入空行
         for r in dataframe_to_rows(df, index=False, header=False):
             ws1.append(r)
     else:
