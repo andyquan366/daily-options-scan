@@ -1,13 +1,13 @@
-name: daily_top_options
+name: daily_top_options_Copy
 
 on:
-  schedule:
-    - cron: '30 * * * 0-5'
+schedule:
+  - cron: '0 2 * * 1-6'
 
   workflow_dispatch:   # ✅ 允许手动触发
 
 jobs:
-  daily_top_options:
+  daily_top_options_Copy:
     runs-on: ubuntu-latest
 
     steps:
