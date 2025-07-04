@@ -1,0 +1,40 @@
+name: daily_top_options
+
+on:
+  schedule:
+    - cron: '30 * * * 0-5'
+
+  workflow_dispatch:   # ✅ 允许手动触发
+
+jobs:
+  daily_top_options:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Create credential file
+        run: |
+          echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > credentials.json
+      - name: Install rclone
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rclone
+
+      - name: Create rclone config file
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "${{ secrets.RCLONE_CONF_BASE64 }}" | base64 --decode > ~/.config/rclone/rclone.conf
+
+      - name: Run python daily_top_options.py
+        run: |
+          python daily_top_options.py
