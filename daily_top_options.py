@@ -74,8 +74,6 @@ for ticker in tickers:
 
         # 获取昨天（或最近交易日）的收盘价
         close_price = get_recent_close(stock, yesterday)
-        if close_price is not None:
-            close_price = round(close_price, 2)
 
         # ✅ 计算涨跌幅（百分比）
         hist = stock.history(period='2d')
@@ -256,7 +254,7 @@ if not os.path.exists(file_name):
     ws1.freeze_panes = 'D2'
     for r in dataframe_to_rows(df, index=False, header=True):
         ws1.append(r)
-    # 不要加空行！！！（此时没有格式问题，月sheet可以直接写入）
+    # 不要加空行！！！
     ws2 = wb.create_sheet(title=year_sheet_name)
     ws2.append(["Date", "Time", "Strong Bullish", "Bullish", "Neutral", "Bearish", "Strong Bearish", "Score"])
 else:
@@ -264,10 +262,8 @@ else:
     if month_sheet_name in wb.sheetnames:
         ws1 = wb[month_sheet_name]
         # ★ 只在追加数据前加空行，不要加表头
-        # 用 insert_rows() 插入纯净空行，避免格式继承
-        last_data_row = ws1.max_row  # 获取最后一行
-        ws1.insert_rows(last_data_row + 1)  # 插入空行
-        ws1.insert_rows(last_data_row + 1)  # 插入空行
+        ws1.append([])
+        ws1.append([])
         for r in dataframe_to_rows(df, index=False, header=False):
             ws1.append(r)
     else:
@@ -285,7 +281,41 @@ else:
     ws2.freeze_panes = 'A2'
 
 
-# ✅ 月Sheet上色
+# 检查表头是否存在，不存在时添加
+if ws2.max_row == 0:
+    ws2.append(["Date", "Time", "Strong Bullish", "Bullish", "Neutral", "Bearish", "Strong Bearish", "Score"])
+
+sentiments = ["Strong Bullish", "Bullish", "Neutral", "Bearish", "Strong Bearish"]
+ticker_sentiment = df[['Ticker', 'Sentiment']].drop_duplicates(subset=['Ticker'])
+sentiment_counts = ticker_sentiment['Sentiment'].value_counts()
+
+sentiment_score = (
+    sentiment_counts.get("Strong Bullish", 0) * 2 +
+    sentiment_counts.get("Bullish", 0) * 1 +
+    sentiment_counts.get("Neutral", 0) * 0 +
+    sentiment_counts.get("Bearish", 0) * (-1) +
+    sentiment_counts.get("Strong Bearish", 0) * (-2)
+)
+
+
+last_data_row = ws2.max_row
+if last_data_row >= 2:
+    last_date = ws2.cell(row=last_data_row, column=1).value  # 第1列是 Date
+    if isinstance(last_date, str) and last_date != now.strftime("%Y-%m-%d"):
+        ws2.append([])
+        ws2.append([])
+ws2.append([
+    now.strftime("%Y-%m-%d"),
+    now.strftime("%H:%M"),
+    sentiment_counts.get("Strong Bullish", 0),
+    sentiment_counts.get("Bullish", 0),
+    sentiment_counts.get("Neutral", 0),
+    sentiment_counts.get("Bearish", 0),
+    sentiment_counts.get("Strong Bearish", 0),
+    sentiment_score,
+])
+
+# ✅ 着色
 fills = {
     "Strong Bullish": "C6EFCE",
     "Bullish": "C6EFCE",
@@ -305,55 +335,6 @@ for ws in [ws1]:
         for cell in row:
             if ws.cell(row=1, column=cell.column).value in ['Price Change', '7D Change']:
                 cell.number_format = '0.00%'  # ✅ 两位小数百分比格式
-
-def get_last_data_row(ws, col=1):
-    for row in range(ws.max_row, 0, -1):
-        if ws.cell(row=row, column=col).value is not None:
-            return row
-    return 1  # 如果没数据，返回表头所在行
-
-# 检查表头是否存在，不存在时添加
-if ws2.max_row == 0:
-    ws2.append(["Date", "Time", "Strong Bullish", "Bullish", "Neutral", "Bearish", "Strong Bearish", "Score"])
-
-sentiments = ["Strong Bullish", "Bullish", "Neutral", "Bearish", "Strong Bearish"]
-ticker_sentiment = df[['Ticker', 'Sentiment']].drop_duplicates(subset=['Ticker'])
-sentiment_counts = ticker_sentiment['Sentiment'].value_counts()
-
-sentiment_score = (
-    sentiment_counts.get("Strong Bullish", 0) * 2 +
-    sentiment_counts.get("Bullish", 0) * 1 +
-    sentiment_counts.get("Neutral", 0) * 0 +
-    sentiment_counts.get("Bearish", 0) * (-1) +
-    sentiment_counts.get("Strong Bearish", 0) * (-2)
-)
-
-print(f"情绪统计：{sentiment_counts.to_dict()}")
-print(f"计算综合分数：{sentiment_score}")
-
-# 获取最后一行的行号
-last_data_row = get_last_data_row(ws2, 1)
-last_date = ws2.cell(row=last_data_row, column=1).value  # 第1列是 Date
-
-# 如果日期不一致，插入空行
-if isinstance(last_date, str) and last_date != now.strftime("%Y-%m-%d"):
-    # 插入纯净的空行
-    ws2.insert_rows(last_data_row + 1)
-    ws2.insert_rows(last_data_row + 1)
-    print("日期不同，追加两个空行作为分隔")
-
-# 追加数据
-ws2.append([
-    now.strftime("%Y-%m-%d"),
-    now.strftime("%H:%M"),
-    sentiment_counts.get("Strong Bullish", 0),
-    sentiment_counts.get("Bullish", 0),
-    sentiment_counts.get("Neutral", 0),
-    sentiment_counts.get("Bearish", 0),
-    sentiment_counts.get("Strong Bearish", 0),
-    sentiment_score,
-])
-print(f"追加年sheet汇总行：{now.strftime('%Y-%m-%d %H:%M')}")
 
 
 # ✅ 自动调整列宽（对两个工作表都执行）
@@ -416,8 +397,8 @@ ws2._images.clear()
 max_col = ws2.max_column
 start_col = max_col + 2
 
-row_offset = 3
-img_height_rows = 12
+row_offset = 0
+img_height_rows = 15
 
 unique_dates = sorted(df_all['Date'].dt.date.unique())
 
