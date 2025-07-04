@@ -282,42 +282,7 @@ else:
         ws2 = wb.create_sheet(year_sheet_name)
     ws2.freeze_panes = 'A2'
 
-
-# 检查表头是否存在，不存在时添加
-if ws2.max_row == 0:
-    ws2.append(["Date", "Time", "Strong Bullish", "Bullish", "Neutral", "Bearish", "Strong Bearish", "Score"])
-
-sentiments = ["Strong Bullish", "Bullish", "Neutral", "Bearish", "Strong Bearish"]
-ticker_sentiment = df[['Ticker', 'Sentiment']].drop_duplicates(subset=['Ticker'])
-sentiment_counts = ticker_sentiment['Sentiment'].value_counts()
-
-sentiment_score = (
-    sentiment_counts.get("Strong Bullish", 0) * 2 +
-    sentiment_counts.get("Bullish", 0) * 1 +
-    sentiment_counts.get("Neutral", 0) * 0 +
-    sentiment_counts.get("Bearish", 0) * (-1) +
-    sentiment_counts.get("Strong Bearish", 0) * (-2)
-)
-
-
-last_data_row = ws2.max_row
-if last_data_row >= 2:
-    last_date = ws2.cell(row=last_data_row, column=1).value  # 第1列是 Date
-    if isinstance(last_date, str) and last_date != now.strftime("%Y-%m-%d"):
-        ws2.append([])
-        ws2.append([])
-ws2.append([
-    now.strftime("%Y-%m-%d"),
-    now.strftime("%H:%M"),
-    sentiment_counts.get("Strong Bullish", 0),
-    sentiment_counts.get("Bullish", 0),
-    sentiment_counts.get("Neutral", 0),
-    sentiment_counts.get("Bearish", 0),
-    sentiment_counts.get("Strong Bearish", 0),
-    sentiment_score,
-])
-
-# ✅ 着色
+# ✅ 月Sheet上色
 fills = {
     "Strong Bullish": "C6EFCE",
     "Bullish": "C6EFCE",
@@ -337,6 +302,46 @@ for ws in [ws1]:
         for cell in row:
             if ws.cell(row=1, column=cell.column).value in ['Price Change', '7D Change']:
                 cell.number_format = '0.00%'  # ✅ 两位小数百分比格式
+
+# 检查表头是否存在，不存在时添加
+if ws2.max_row == 0:
+    ws2.append(["Date", "Time", "Strong Bullish", "Bullish", "Neutral", "Bearish", "Strong Bearish", "Score"])
+
+sentiments = ["Strong Bullish", "Bullish", "Neutral", "Bearish", "Strong Bearish"]
+ticker_sentiment = df[['Ticker', 'Sentiment']].drop_duplicates(subset=['Ticker'])
+sentiment_counts = ticker_sentiment['Sentiment'].value_counts()
+
+sentiment_score = (
+    sentiment_counts.get("Strong Bullish", 0) * 2 +
+    sentiment_counts.get("Bullish", 0) * 1 +
+    sentiment_counts.get("Neutral", 0) * 0 +
+    sentiment_counts.get("Bearish", 0) * (-1) +
+    sentiment_counts.get("Strong Bearish", 0) * (-2)
+)
+
+
+print(f"情绪统计：{sentiment_counts.to_dict()}")
+print(f"计算综合分数：{sentiment_score}")
+
+last_data_row = ws2.max_row
+if last_data_row >= 2:
+    last_date = ws2.cell(row=last_data_row, column=1).value  # 第1列是 Date
+    if isinstance(last_date, str) and last_date != now.strftime("%Y-%m-%d"):
+        ws2.append([])
+        ws2.append([])
+        print("日期不同，追加两个空行作为分隔")
+
+ws2.append([
+    now.strftime("%Y-%m-%d"),
+    now.strftime("%H:%M"),
+    sentiment_counts.get("Strong Bullish", 0),
+    sentiment_counts.get("Bullish", 0),
+    sentiment_counts.get("Neutral", 0),
+    sentiment_counts.get("Bearish", 0),
+    sentiment_counts.get("Strong Bearish", 0),
+    sentiment_score,
+])
+print(f"追加年sheet汇总行：{now.strftime('%Y-%m-%d %H:%M')}")
 
 
 # ✅ 自动调整列宽（对两个工作表都执行）
