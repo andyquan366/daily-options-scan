@@ -1,4 +1,4 @@
-name: daily_top_options_Copy
+name: daily_top_options_copy
 
 on:
 schedule:
@@ -7,7 +7,7 @@ schedule:
   workflow_dispatch:   # ✅ 允许手动触发
 
 jobs:
-  daily_top_options_Copy:
+  daily_top_options_copy:
     runs-on: ubuntu-latest
 
     steps:
