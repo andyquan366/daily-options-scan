@@ -98,7 +98,8 @@ for sheet_name in wb.sheetnames:
     change_7d_forward_col = header.index("7D Forward Change") + 1
 
     filtered_stocks = filter_stocks(ws, date_col, ticker_col, company_col,
-                                   price_change_col, change_7d_col, change_3d_forward_col, change_7d_forward_col)
+                               price_change_col, change_7d_col, change_3d_forward_col, change_7d_forward_col,
+                               scan_start_date)
     print(f"工作表 {sheet_name} 筛选到符合条件的数据数量: {len(filtered_stocks)}")
 
     if filtered_stocks:
@@ -144,7 +145,6 @@ for sheet_name in wb.sheetnames:
 # 调用自动列宽函数
         auto_adjust_column_width(new_ws)
 
-        print(f"写入 {len(filtered_stocks)} 条数据到新工作表 {new_sheet_name}")
+       
 
 wb.save(file_name)
-print("数据筛选并保存完成")
