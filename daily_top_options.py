@@ -267,7 +267,7 @@ else:
         # 用 insert_rows() 插入纯净空行，避免格式继承
         last_data_row = ws1.max_row  # 获取最后一行
         ws1.insert_rows(last_data_row + 1)  # 插入空行
-        ws1.insert_rows(last_data_row + 2)  # 插入空行
+        ws1.insert_rows(last_data_row + 1)  # 插入空行
         for r in dataframe_to_rows(df, index=False, header=False):
             ws1.append(r)
     else:
