@@ -1,8 +1,8 @@
 name: daily_top_options_copy
 
 on:
-schedule:
-  - cron: '0 2 * * 1-6'
+  schedule:
+    - cron: '0 2 * * 1-6'
 
   workflow_dispatch:   # ✅ 允许手动触发
 
