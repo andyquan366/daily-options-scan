@@ -1,4 +1,4 @@
-name: Update ETF Price
+name: update_etf_prices
 
 on:
   schedule:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:   # ✅ 允许手动触发
 
 jobs:
-  run-script:
+  update_etf_prices:
     runs-on: ubuntu-latest
 
     steps:
