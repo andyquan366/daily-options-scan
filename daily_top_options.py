@@ -303,6 +303,12 @@ for ws in [ws1]:
             if ws.cell(row=1, column=cell.column).value in ['Price Change', '7D Change']:
                 cell.number_format = '0.00%'  # ✅ 两位小数百分比格式
 
+def get_last_data_row(ws, col=1):
+    for row in range(ws.max_row, 0, -1):
+        if ws.cell(row=row, column=col).value is not None:
+            return row
+    return 1  # 如果没数据，返回表头所在行
+
 # 检查表头是否存在，不存在时添加
 if ws2.max_row == 0:
     ws2.append(["Date", "Time", "Strong Bullish", "Bullish", "Neutral", "Bearish", "Strong Bearish", "Score"])
@@ -319,18 +325,21 @@ sentiment_score = (
     sentiment_counts.get("Strong Bearish", 0) * (-2)
 )
 
-
 print(f"情绪统计：{sentiment_counts.to_dict()}")
 print(f"计算综合分数：{sentiment_score}")
 
-last_data_row = ws2.max_row
-if last_data_row >= 2:
-    last_date = ws2.cell(row=last_data_row, column=1).value  # 第1列是 Date
-    if isinstance(last_date, str) and last_date != now.strftime("%Y-%m-%d"):
-        ws2.append([])
-        ws2.append([])
-        print("日期不同，追加两个空行作为分隔")
+# 获取最后一行的行号
+last_data_row = get_last_data_row(ws2, 1)
+last_date = ws2.cell(row=last_data_row, column=1).value  # 第1列是 Date
 
+# 如果日期不一致，插入空行
+if isinstance(last_date, str) and last_date != now.strftime("%Y-%m-%d"):
+    # 插入纯净的空行
+    ws2.insert_rows(last_data_row + 1)
+    ws2.insert_rows(last_data_row + 2)
+    print("日期不同，追加两个空行作为分隔")
+
+# 追加数据
 ws2.append([
     now.strftime("%Y-%m-%d"),
     now.strftime("%H:%M"),
