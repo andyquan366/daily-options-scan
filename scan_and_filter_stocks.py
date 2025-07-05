@@ -178,7 +178,7 @@ for sheet_name in wb.sheetnames:
     if new_sheet_name in wb.sheetnames:
         wb.remove(wb[new_sheet_name])
     new_ws = wb.create_sheet(new_sheet_name)
-    new_ws.freeze_panes = 'A2'
+    new_ws.freeze_panes = 'C2'
 
     # 主表头
     new_ws.append(['Date', 'Ticker', 'Company', 'AVG Score', 'Price Change', '7D Change', '3D Forward Change', '7D Forward Change'])
