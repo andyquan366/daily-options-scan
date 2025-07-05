@@ -16,9 +16,10 @@ pattern = re.compile(r"^\d{4}-\d{2}$")
 
 def filter_stocks(ws, date_col, ticker_col, company_col,
                   price_change_col, change_7d_col, change_3d_forward_col, change_7d_forward_col,
-                  scan_start_date):  # 新增参数
+                  score_col, scan_start_date):
     filtered_stocks = []
     seen = set()
+    score_accum = {}
     for r in range(2, ws.max_row + 1):
         dt_cell = ws.cell(row=r, column=date_col).value
         if not dt_cell:
@@ -41,6 +42,15 @@ def filter_stocks(ws, date_col, ticker_col, company_col,
         change_3d_forward = ws.cell(row=r, column=change_3d_forward_col).value
         change_7d_forward = ws.cell(row=r, column=change_7d_forward_col).value
 
+        score = ws.cell(row=r, column=score_col).value
+        if score is None:
+            score = 0.0
+        else:
+            try:
+                score = float(score)
+            except:
+                score = 0.0
+
         key = (dt_val, ticker, company)
         if key in seen:
             continue
@@ -57,7 +67,21 @@ def filter_stocks(ws, date_col, ticker_col, company_col,
                     '7D Change': change_7d,
                     '3D Forward Change': change_3d_forward,
                     '7D Forward Change': change_7d_forward,
+                    'Score': score,
                 })
+
+                score_key = (dt_val, ticker)
+                if score_key not in score_accum:
+                    score_accum[score_key] = []
+                score_accum[score_key].append(score)
+
+
+    for stock in filtered_stocks:
+        score_key = (stock['Date'], stock['Ticker'])
+        scores = score_accum.get(score_key, [])
+        avg_score = sum(scores) / len(scores) if scores else 0.0
+        stock['AVG Score'] = avg_score
+
     return filtered_stocks
 
 
@@ -84,11 +108,12 @@ for sheet_name in wb.sheetnames:
 
     # 根据您提供的列名完整校验
     required_cols = ["Date", "Ticker", "Company",
-                     "Price Change", "7D Change", "3D Forward Change", "7D Forward Change"]
+                     "Price Change", "7D Change", "3D Forward Change", "7D Forward Change", "Score"]
     if any(col not in header for col in required_cols):
         print(f"工作表 {sheet_name} 缺少必要列，跳过")
         continue
 
+    score_col = header.index("Score") + 1
     date_col = header.index("Date") + 1
     ticker_col = header.index("Ticker") + 1
     company_col = header.index("Company") + 1
@@ -99,10 +124,12 @@ for sheet_name in wb.sheetnames:
 
     filtered_stocks = filter_stocks(ws, date_col, ticker_col, company_col,
                                price_change_col, change_7d_col, change_3d_forward_col, change_7d_forward_col,
+                               score_col,
                                scan_start_date)
     print(f"工作表 {sheet_name} 筛选到符合条件的数据数量: {len(filtered_stocks)}")
 
     if filtered_stocks:
+        filtered_stocks.sort(key=lambda x: (x['Date'], -x['AVG Score']))
         new_sheet_name = f"Filtered_{sheet_name}"
         if new_sheet_name in wb.sheetnames:
             wb.remove(wb[new_sheet_name])
@@ -113,7 +140,8 @@ for sheet_name in wb.sheetnames:
 
 
         # 写入表头，顺序严格按您说的来
-        new_ws.append(['Date', 'Ticker', 'Company', 'Price Change', '7D Change', '3D Forward Change', '7D Forward Change'])
+        new_ws.append(['Date', 'Ticker', 'Company', 'AVG Score', 'Price Change', '7D Change', '3D Forward Change', '7D Forward Change'])
+
 
     prev_date = None
     row_idx = 2  # 从第二行开始写数据，第一行是表头
@@ -129,13 +157,14 @@ for sheet_name in wb.sheetnames:
         new_ws.cell(row=row_idx, column=1, value=stock['Date'])
         new_ws.cell(row=row_idx, column=2, value=stock['Ticker'])
         new_ws.cell(row=row_idx, column=3, value=stock['Company'])
-        new_ws.cell(row=row_idx, column=4, value=stock['Price Change'])
-        new_ws.cell(row=row_idx, column=5, value=stock['7D Change'])
-        new_ws.cell(row=row_idx, column=6, value=stock['3D Forward Change'])
-        new_ws.cell(row=row_idx, column=7, value=stock['7D Forward Change'])
+        new_ws.cell(row=row_idx, column=4, value=stock['AVG Score'])
+        new_ws.cell(row=row_idx, column=5, value=stock['Price Change'])
+        new_ws.cell(row=row_idx, column=6, value=stock['7D Change'])
+        new_ws.cell(row=row_idx, column=7, value=stock['3D Forward Change'])
+        new_ws.cell(row=row_idx, column=8, value=stock['7D Forward Change'])
 
     # 设置百分比格式
-        for col in range(4, 8):
+        for col in range(5, 9):
             new_ws.cell(row=row_idx, column=col).number_format = '0.00%'
 
         prev_date = curr_date
