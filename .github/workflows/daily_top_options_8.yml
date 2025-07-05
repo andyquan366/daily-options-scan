@@ -1,13 +1,13 @@
-name: daily_top_options_0
+name: daily_top_options_8
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 8 * * *'
 
   workflow_dispatch:   # ✅ 允许手动触发
 
 jobs:
-  daily_top_options_0:
+  daily_top_options_8:
     runs-on: ubuntu-latest
 
     steps:
