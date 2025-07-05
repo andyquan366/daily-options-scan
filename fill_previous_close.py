@@ -8,6 +8,28 @@ from openpyxl import load_workbook
 if "GITHUB_ACTIONS" in os.environ:
     os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
 
+
+def get_previous_trading_close(stock, current_date, max_lookback=10):
+    """
+    给定某天，从前一天开始往前查最近交易日的收盘价，最多回溯 max_lookback 天
+    """
+    for i in range(1, max_lookback + 1):
+        check_date = current_date - timedelta(days=i)
+        start_str = check_date.strftime('%Y-%m-%d')
+        end_str = (check_date + timedelta(days=1)).strftime('%Y-%m-%d')
+        try:
+            hist = stock.history(start=start_str, end=end_str)
+            if not hist.empty:
+                hist.index = hist.index.tz_localize(None)
+                for dt in hist.index:
+                    if dt.date() == check_date:
+                        return float(hist.loc[dt, 'Close'])
+        except:
+            continue
+    return None
+
+
+
 tz = pytz.timezone("America/Toronto")
 now = datetime.now(tz)
 today_str = now.strftime("%Y-%m-%d")
@@ -57,24 +79,17 @@ for sheet_name in sheet_names:
             continue
 
         stock_symbol = str(ticker).strip()
-        back_offset = 0
-        prev_close = None
-        while back_offset < 7 and prev_close is None:
-            search_date = (datetime.strptime(row_date_str, "%Y-%m-%d") - timedelta(days=back_offset)).strftime("%Y-%m-%d")
-            try:
-                stock = yf.Ticker(stock_symbol)
-                hist = stock.history(
-                    start=search_date,
-                    end=(datetime.strptime(search_date, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
-                )
-                if not hist.empty:
-                    prev_close = float(hist['Close'].iloc[0])
-                    print(f"✅ {stock_symbol}: got close {prev_close} ({search_date} for {row_date_str})")
-                else:
-                    print(f"⏩ {stock_symbol}: no price ({search_date} for {row_date_str}), try previous day")
-            except Exception as e:
-                print(f"❌ {stock_symbol}: {e} ({search_date} for {row_date_str})")
-            back_offset += 1
+
+        try:
+            stock = yf.Ticker(stock_symbol)
+            row_date = datetime.strptime(row_date_str, "%Y-%m-%d").date()
+            prev_close = get_previous_trading_close(stock, row_date)
+            if prev_close:
+                print(f"✅ {stock_symbol}: got close {prev_close} (for {row_date_str})")
+        except Exception as e:
+            print(f"❌ {stock_symbol}: {e} (for {row_date_str})")
+
+
 
         if prev_close is not None:
             close_cell.value = round(prev_close, 2)
