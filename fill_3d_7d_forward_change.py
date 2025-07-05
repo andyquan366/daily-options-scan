@@ -52,18 +52,24 @@ for sheet_name in wb.sheetnames:
         continue
     print(f"开始处理工作表: {sheet_name}")
     ws = wb[sheet_name]
-    header = [cell.value for cell in ws[1]]
-    # 确保列存在
-    required_cols = ["Date", "Ticker", "Previous Close", "3D Forward Change", "7D Forward Change"]
-    if any(col not in header for col in required_cols):
-        print(f"工作表 {sheet_name} 缺少必要列，跳过")
-        continue
 
+    header = [cell.value for cell in ws[1]]
+
+# 如果缺列则自动添加列头
+    if "3D Forward Change" not in header:
+        ws.cell(row=1, column=len(header) + 1).value = "3D Forward Change"
+        header.append("3D Forward Change")
+    if "7D Forward Change" not in header:
+        ws.cell(row=1, column=len(header) + 1).value = "7D Forward Change"
+        header.append("7D Forward Change")
+
+# 更新列索引（注意 +1，因为 openpyxl 列是从1开始）
     date_col = header.index("Date") + 1
     ticker_col = header.index("Ticker") + 1
     prev_close_col = header.index("Previous Close") + 1
     col_3d = header.index("3D Forward Change") + 1
     col_7d = header.index("7D Forward Change") + 1
+
 
     # 先获取昨天所有ticker的收盘价，缓存起来，避免多次请求
     yesterday_close_cache = {}
