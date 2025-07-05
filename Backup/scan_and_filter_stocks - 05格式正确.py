@@ -196,16 +196,6 @@ for sheet_name in wb.sheetnames:
     for stock in filtered_stocks:
         curr_date = stock['Date']
 
-    # 计算符号组合
-        sign_price = '+' if stock['Price Change'] >= 0 else '-'
-        sign_7d = '+' if stock['7D Change'] >= 0 else '-'
-        combo = (sign_price, sign_7d)
-
-    # 往统计字典里添加数据
-        daily_3d[curr_date][combo].append(stock['3D Forward Change'])
-        daily_7d[curr_date][combo].append(stock['7D Forward Change'])
-        daily_score[curr_date][combo].append(stock['Score'])
-
         if curr_date != prev_date and prev_date is not None:
             # 写统计，传入该日期第一条数据行号，统计写入连续4行
             write_stats(new_ws, prev_date, daily_3d, daily_7d, daily_score, min(date_rows))
