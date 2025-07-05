@@ -2,7 +2,7 @@ name: scan_and_filter_stocks
 
 on:
   schedule:
-    - cron: '0 7 * * 0-5'  # 周日到周五，每天凌晨7点执行
+    - cron: '0 7 * * *'  # 每天凌晨7点执行
 
   workflow_dispatch:   # ✅ 允许手动触发
 
