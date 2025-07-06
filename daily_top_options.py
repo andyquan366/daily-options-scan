@@ -323,10 +323,10 @@ ticker_sentiment = df[['Ticker', 'Sentiment']].drop_duplicates(subset=['Ticker']
 sentiment_counts = ticker_sentiment['Sentiment'].value_counts()
 
 sentiment_score = (
-    sentiment_counts.get("Strong Bullish", 0) * 5 +
-    sentiment_counts.get("Bullish", 0) * 4 +
+    sentiment_counts.get("Strong Bullish", 0) * 7 +
+    sentiment_counts.get("Bullish", 0) * 5 +
     sentiment_counts.get("Neutral", 0) * 3 +
-    sentiment_counts.get("Bearish", 0) * 2 +
+    sentiment_counts.get("Bearish", 0) * -
     sentiment_counts.get("Strong Bearish", 0) 
 )
 
