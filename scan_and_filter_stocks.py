@@ -4,9 +4,9 @@ import os
 from openpyxl.utils import get_column_letter
 from datetime import datetime, timedelta
 from collections import defaultdict, OrderedDict
+from openpyxl.styles import PatternFill
 
-today = datetime.today().date()
-scan_start_date = today - timedelta(days=8)  # 例如扫描8天前的数据
+scan_start_date = datetime(2025, 6, 27).date()
 
 if "GITHUB_ACTIONS" in os.environ:
     os.system('rclone copy "gdrive:/Investing/Daily top options/option_activity_log.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
@@ -224,6 +224,18 @@ for sheet_name in wb.sheetnames:
 
         for col in range(5, 9):
             new_ws.cell(row=row_idx, column=col).number_format = '0.00%'
+
+
+        highlight_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+
+        pc = stock['Price Change']
+        d7 = stock['7D Change']
+
+        if pc is not None and d7 is not None and d7 > 0:
+            ratio = pc / d7
+            if -0.7 <= ratio <= -0.2:
+                new_ws.cell(row=row_idx, column=5).fill = highlight_fill
+                new_ws.cell(row=row_idx, column=6).fill = highlight_fill
 
         date_rows.append(row_idx)
         prev_date = curr_date
