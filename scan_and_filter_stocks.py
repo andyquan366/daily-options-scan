@@ -15,6 +15,38 @@ file_name = "option_activity_log.xlsx"
 wb = load_workbook(file_name)
 pattern = re.compile(r"^\d{4}-\d{2}$")
 
+def get_daily_change_yf(ticker, ref_date):
+    import yfinance as yf
+    from datetime import timedelta
+    stock = yf.Ticker(ticker)
+    max_lookback = 10
+    for i in range(max_lookback):
+        day = ref_date - timedelta(days=i)
+        hist = stock.history(start=day.strftime('%Y-%m-%d'), end=(day + timedelta(days=1)).strftime('%Y-%m-%d'))
+        if not hist.empty:
+            close = hist['Close'].iloc[0]
+            prev_day = day - timedelta(days=1)
+            prev_hist = stock.history(start=prev_day.strftime('%Y-%m-%d'), end=day.strftime('%Y-%m-%d'))
+            if not prev_hist.empty:
+                prev_close = prev_hist['Close'].iloc[0]
+                return round((close - prev_close) / prev_close, 6)
+    return None
+
+def get_7d_change_yf(ticker, ref_date):
+    import yfinance as yf
+    from datetime import timedelta
+    stock = yf.Ticker(ticker)
+    max_lookback = 10
+    for i in range(max_lookback):
+        end_day = ref_date - timedelta(days=i)
+        start_day = end_day - timedelta(days=7)
+        hist = stock.history(start=start_day.strftime('%Y-%m-%d'), end=(end_day + timedelta(days=1)).strftime('%Y-%m-%d'))
+        if len(hist) >= 2:
+            start_close = hist['Close'].iloc[0]
+            end_close = hist['Close'].iloc[-1]
+            return round((end_close - start_close) / start_close, 6)
+    return None
+
 def filter_stocks(ws, date_col, ticker_col, company_col,
                   price_change_col, change_7d_col, change_3d_forward_col, change_7d_forward_col,
                   score_col, scan_start_date):
@@ -42,6 +74,13 @@ def filter_stocks(ws, date_col, ticker_col, company_col,
         change_7d = ws.cell(row=r, column=change_7d_col).value
         change_3d_forward = ws.cell(row=r, column=change_3d_forward_col).value
         change_7d_forward = ws.cell(row=r, column=change_7d_forward_col).value
+
+        # 缺失时调用辅助函数补齐
+        if price_change is None:
+            price_change = get_daily_change_yf(ticker, dt_val)
+        if change_7d is None:
+            change_7d = get_7d_change_yf(ticker, dt_val)
+
 
         score = ws.cell(row=r, column=score_col).value
         if score is None:

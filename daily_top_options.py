@@ -53,41 +53,6 @@ records = []
 volume_summary = {}
 
 
-
-def get_daily_change_yf(ticker, ref_date):
-    import yfinance as yf
-    from datetime import timedelta
-    stock = yf.Ticker(ticker)
-    max_lookback = 10
-    for i in range(max_lookback):
-        day = ref_date - timedelta(days=i)
-        hist = stock.history(start=day.strftime('%Y-%m-%d'), end=(day + timedelta(days=1)).strftime('%Y-%m-%d'))
-        if not hist.empty:
-            close = hist['Close'].iloc[0]
-            prev_day = day - timedelta(days=1)
-            prev_hist = stock.history(start=prev_day.strftime('%Y-%m-%d'), end=day.strftime('%Y-%m-%d'))
-            if not prev_hist.empty:
-                prev_close = prev_hist['Close'].iloc[0]
-                return round((close - prev_close) / prev_close, 6)
-    return None
-
-def get_7d_change_yf(ticker, ref_date):
-    import yfinance as yf
-    from datetime import timedelta
-    stock = yf.Ticker(ticker)
-    max_lookback = 10
-    for i in range(max_lookback):
-        end_day = ref_date - timedelta(days=i)
-        start_day = end_day - timedelta(days=7)
-        hist = stock.history(start=start_day.strftime('%Y-%m-%d'), end=(end_day + timedelta(days=1)).strftime('%Y-%m-%d'))
-        if len(hist) >= 2:
-            start_close = hist['Close'].iloc[0]
-            end_close = hist['Close'].iloc[-1]
-            return round((end_close - start_close) / start_close, 6)
-    return None
-
-
-
 # 模块顶层定义，循环外
 def get_recent_close(stock, ref_date, max_lookback=7):
     for i in range(max_lookback):
@@ -121,11 +86,6 @@ for ticker in tickers:
         else:
             price_change = None
 
-# 这里加调用补查函数
-        if price_change is None:
-            price_change = get_daily_change_yf(ticker, today)
-
-
 # ✅ 计算 7 天价格变化（百分比）
         hist_7d = stock.history(period='7d')
         if len(hist_7d) >= 2:
@@ -134,10 +94,6 @@ for ticker in tickers:
             price_change_7d = round((week_end - week_start) / week_start, 4)
         else:
             price_change_7d = None
-
-# 这里加调用补查函数
-        if price_change_7d is None:
-            price_change_7d = get_7d_change_yf(ticker, today)
 
         expiry_dates = [e for e in expiry_dates if (datetime.strptime(e, "%Y-%m-%d").date() - today).days <= 10]
         if not expiry_dates:
