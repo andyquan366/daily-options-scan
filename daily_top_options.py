@@ -325,9 +325,9 @@ sentiment_counts = ticker_sentiment['Sentiment'].value_counts()
 sentiment_score = (
     sentiment_counts.get("Strong Bullish", 0) * 7 +
     sentiment_counts.get("Bullish", 0) * 5 +
-    sentiment_counts.get("Neutral", 0) * 3 +
+    sentiment_counts.get("Neutral", 0) * 3 -
     sentiment_counts.get("Bearish", 0) * -
-    sentiment_counts.get("Strong Bearish", 0) 
+    sentiment_counts.get("Strong Bearish", 0) * (-3)
 )
 
 print(f"情绪统计：{sentiment_counts.to_dict()}")
@@ -425,8 +425,8 @@ ws2._images.clear()
 max_col = ws2.max_column
 start_col = max_col + 2
 
-row_offset = 3
-img_height_rows = 12
+row_offset = 4
+img_height_rows = 14
 
 unique_dates = sorted(df_all['Date'].dt.date.unique())
 
