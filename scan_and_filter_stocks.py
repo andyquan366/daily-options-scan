@@ -18,9 +18,9 @@ pattern = re.compile(r"^\d{4}-\d{2}$")
 def filter_stocks(ws, date_col, ticker_col, company_col,
                   price_change_col, change_7d_col, change_3d_forward_col, change_7d_forward_col,
                   score_col, scan_start_date):
-    filtered_stocks = []
-    seen = set()
+    records_dict = {}
     score_accum = {}
+
 
     for r in range(2, ws.max_row + 1):
         dt_cell = ws.cell(row=r, column=date_col).value
@@ -53,26 +53,26 @@ def filter_stocks(ws, date_col, ticker_col, company_col,
                 score = 0.0
 
         key = (dt_val, ticker, company)
-        if key in seen:
-            continue
-        seen.add(key)
+        # 覆盖旧记录，保留最后一条
+        records_dict[key] = {
+            'Date': dt_val,
+            'Ticker': ticker,
+            'Company': company,
+            'Price Change': price_change,
+            '7D Change': change_7d,
+            '3D Forward Change': change_3d_forward,
+            '7D Forward Change': change_7d_forward,
+            'Score': score,
+        }
 
-        if price_change is not None and change_7d is not None:
-            filtered_stocks.append({
-                'Date': dt_val,
-                'Ticker': ticker,
-                'Company': company,
-                'Price Change': price_change,
-                '7D Change': change_7d,
-                '3D Forward Change': change_3d_forward,
-                '7D Forward Change': change_7d_forward,
-                'Score': score,
-            })
+    filtered_stocks = list(records_dict.values())
 
-            score_key = (dt_val, ticker)
-            if score_key not in score_accum:
-                score_accum[score_key] = []
-            score_accum[score_key].append(score)
+    score_accum = {}
+    for stock in filtered_stocks:
+        score_key = (stock['Date'], stock['Ticker'])
+        if score_key not in score_accum:
+            score_accum[score_key] = []
+        score_accum[score_key].append(stock['Score'])
 
     for stock in filtered_stocks:
         score_key = (stock['Date'], stock['Ticker'])
@@ -81,6 +81,7 @@ def filter_stocks(ws, date_col, ticker_col, company_col,
         stock['AVG Score'] = avg_score
 
     return filtered_stocks
+
 
 def safe_average(lst):
     filtered = [x for x in lst if x is not None]
