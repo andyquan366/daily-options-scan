@@ -434,7 +434,7 @@ for date_val in unique_dates:
 
 
 
-# ✅ 自动调整列宽（对两个工作表都执行）
+# ✅ 自动调整列宽
 from openpyxl.utils import get_column_letter
 
 for ws in [ws1, ws2]:
