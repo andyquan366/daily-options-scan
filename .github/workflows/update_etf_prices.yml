@@ -2,7 +2,7 @@ name: update_etf_prices
 
 on:
   schedule:
-    - cron: '30 * * * 0-5' # 周日到周五，每小时一次
+    - cron: '0 * * * 0-5' # 周日到周五，每小时一次
 
   workflow_dispatch:   # ✅ 允许手动触发
 
