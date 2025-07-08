@@ -405,7 +405,7 @@ max_col = ws2.max_column
 start_col = max_col + 2
 
 row_offset = 4
-img_height_rows = 14
+img_height_rows = 16
 
 unique_dates = sorted(df_all['Date'].dt.date.unique())
 
