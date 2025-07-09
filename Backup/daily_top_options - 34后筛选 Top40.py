@@ -44,10 +44,7 @@ for i in range(len(nasdaq)):
 
 
 records_raw = []
-option_cache = {}
 
-print("⏬ 批量拉取最近7天全部股票的历史收盘价 ...")
-price_df = yf.download(tickers, period="7d", group_by="ticker")
 
 # 模块顶层定义，循环外
 def get_recent_close(stock, ref_date, max_lookback=7):
@@ -72,29 +69,21 @@ for ticker in tickers:
             close_price = round(close_price, 2)
 
         # ✅ 计算涨跌幅（百分比）
-        # ✅ 批量数据中计算2日收盘价（涨跌幅）
-        try:
-            closes = price_df[ticker]['Close'].dropna()
-            if len(closes) >= 2:
-                prev_close = closes.iloc[-2]
-                last_price = closes.iloc[-1]
-                price_change = round((last_price - prev_close) / prev_close, 4)
-            else:
-                price_change = None
-        except Exception:
+        hist = stock.history(period='2d')
+        if len(hist) >= 2:
+            prev_close = hist['Close'].iloc[-2]
+            last_price = hist['Close'].iloc[-1]
+            price_change = round((last_price - prev_close) / prev_close, 4)
+        else:
             price_change = None
 
-
 # ✅ 计算 7 天价格变化（百分比）
-        try:
-            closes_7d = price_df[ticker]['Close'].dropna()
-            if len(closes_7d) >= 2:
-                week_start = closes_7d.iloc[0]
-                week_end = closes_7d.iloc[-1]
-                price_change_7d = round((week_end - week_start) / week_start, 4)
-            else:
-                price_change_7d = None
-        except Exception:
+        hist_7d = stock.history(period='7d')
+        if len(hist_7d) >= 2:
+            week_start = hist_7d['Close'].iloc[0]
+            week_end = hist_7d['Close'].iloc[-1]
+            price_change_7d = round((week_end - week_start) / week_start, 4)
+        else:
             price_change_7d = None
 
         expiry_dates = [e for e in expiry_dates if (datetime.strptime(e, "%Y-%m-%d").date() - today).days <= 10]
@@ -102,25 +91,15 @@ for ticker in tickers:
             continue
 
         all_calls, all_puts = [], []
-
-        option_cache[ticker] = {}
         for expiry in expiry_dates:
             try:
-        # 第一次才请求并缓存
-                if expiry not in option_cache[ticker]:
-                    chain = stock.option_chain(expiry)
-                    option_cache[ticker][expiry] = {
-                        'calls': chain.calls.copy(),
-                        'puts': chain.puts.copy()
-                    }
-                calls = option_cache[ticker][expiry]['calls']
-                puts = option_cache[ticker][expiry]['puts']
+                chain = stock.option_chain(expiry)
+                calls, puts = chain.calls.copy(), chain.puts.copy()
                 calls['expiry'], puts['expiry'] = expiry, expiry
                 all_calls.append(calls)
                 all_puts.append(puts)
             except:
                 continue
-
 
         if not all_calls or not all_puts:
             continue

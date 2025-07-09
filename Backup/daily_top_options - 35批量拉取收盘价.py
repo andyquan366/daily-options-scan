@@ -44,7 +44,6 @@ for i in range(len(nasdaq)):
 
 
 records_raw = []
-option_cache = {}
 
 print("⏬ 批量拉取最近7天全部股票的历史收盘价 ...")
 price_df = yf.download(tickers, period="7d", group_by="ticker")
@@ -102,25 +101,15 @@ for ticker in tickers:
             continue
 
         all_calls, all_puts = [], []
-
-        option_cache[ticker] = {}
         for expiry in expiry_dates:
             try:
-        # 第一次才请求并缓存
-                if expiry not in option_cache[ticker]:
-                    chain = stock.option_chain(expiry)
-                    option_cache[ticker][expiry] = {
-                        'calls': chain.calls.copy(),
-                        'puts': chain.puts.copy()
-                    }
-                calls = option_cache[ticker][expiry]['calls']
-                puts = option_cache[ticker][expiry]['puts']
+                chain = stock.option_chain(expiry)
+                calls, puts = chain.calls.copy(), chain.puts.copy()
                 calls['expiry'], puts['expiry'] = expiry, expiry
                 all_calls.append(calls)
                 all_puts.append(puts)
             except:
                 continue
-
 
         if not all_calls or not all_puts:
             continue
