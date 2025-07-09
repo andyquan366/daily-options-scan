@@ -112,32 +112,10 @@ option_cache[ticker] = {'calls': ..., 'puts': ...}
 避免重复访问 API
 
 防止 yfinance 限流或报错
+已做
 
-⑥ Excel 批量写入 + Summary 页
-📌 当前问题：
-每条记录 .append() 写一行到 Excel，速度慢
 
-Call / Put 各一条，数据重复量大，不利于快速选股
 
-✅ 优化方式：
-所有记录用 DataFrame 批量写入：
-
-python
-Copy
-Edit
-df.to_excel(writer, sheet_name='2025-07')
-额外创建一个 Summary sheet：
-
-python
-Copy
-Edit
-df_summary = df[df['Score'] >= 60].nlargest(10, 'Score')[['Ticker', 'Score', 'Sentiment', 'Price Change']]
-✅ 作用：
-写入速度提升 5～10 倍
-
-提供快速选股视图
-
-文件更轻，结构更清晰
 
 ✅ 建议执行顺序（适合分窗口进行）
 步骤	优化编号	优先级	推荐理由
@@ -146,6 +124,6 @@ df_summary = df[df['Score'] >= 60].nlargest(10, 'Score')[['Ticker', 'Score', 'Se
 第三步	③ 后筛选 Top40	⭐⭐⭐⭐⭐	提高可维护性，结构清晰
 第四步	④ 批量拉收盘价	⭐⭐⭐⭐	显著提速，改动稍多
 第五步	① 缓存期权链	⭐⭐⭐⭐	减少重复请求，稳定性更强
-最后	⑥ Excel 批量写入	⭐⭐⭐⭐	优化输出结构和速度
+
 
 准备好了告诉我，从第几步开始，我会在新窗口中只执行该步改动，保留你现有逻辑，确保每次只改一块。
