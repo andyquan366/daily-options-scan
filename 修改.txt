@@ -1,0 +1,149 @@
+ 六项优化说明（按最简单 → 最复杂排序）
+① 删除无效代码（最简单）
+python
+Copy
+Edit
+stock._history = {}
+stock._options = None
+📌 为什么删？
+你写这两行是为了“清缓存”，但 yfinance 并不需要你手动清。
+
+实际无任何作用，甚至在某些版本中还会引发错误。
+
+属于“看起来像优化，实际是误导”。
+
+✅ 执行方式：
+直接从循环里删掉两行代码即可
+
+没有依赖、无副作用
+
+已做
+
+
+② 统一时间变量定义
+📌 当前问题：
+tz, now, today, today_str, now_time_str 在脚本里定义了2次以上
+
+有重复，有冗余，维护困难
+
+✅ 优化方式：
+在脚本顶部集中定义：
+
+python
+Copy
+Edit
+tz = pytz.timezone("America/Toronto")
+now = datetime.now(tz)
+today = now.date()
+today_str = now.strftime('%Y-%m-%d')
+now_time_str = now.strftime('%H:%M')
+后面所有时间相关的地方直接用变量，不再重复格式化
+
+✅ 作用：
+提高代码一致性
+
+维护和调试更方便
+
+已做
+
+③ 后筛选 Top40（集中筛选逻辑）
+📌 当前问题：
+每处理一个 ticker 就判断成交量 > 3000
+
+然后立即判断是否保留，过程零碎且浪费计算
+
+✅ 优化方式：
+所有记录先放入 records_raw 列表
+
+最后统一转换成 DataFrame：
+
+python
+Copy
+Edit
+df = pd.DataFrame(records_raw)
+df = df[df['Total Volume'] > 3000]
+top40 = df.groupby('Ticker')['Total Volume'].sum().nlargest(40).index
+df = df[df['Ticker'].isin(top40)]
+✅ 作用：
+筛选逻辑集中更清晰
+
+更容易修改筛选标准（如前100）
+
+提高执行效率
+
+④ 批量拉取收盘价（yf.download）
+📌 当前问题：
+每只股票反复调用 .history(period='2d'), .history(period='7d')
+
+API调用上千次，非常慢
+
+✅ 优化方式：
+用：
+
+python
+Copy
+Edit
+price_df = yf.download(tickers, period="7d", group_by="ticker")
+之后从 price_df[ticker]['Close'] 获取收盘价
+
+替代所有 .history() 相关调用
+
+✅ 作用：
+API调用从数千次 → 1次
+
+提速显著（通常快10倍）
+
+⑤ 缓存期权链
+📌 当前问题：
+每个 expiry 都调用 stock.option_chain(expiry)，频繁请求
+
+✅ 优化方式：
+每只股票调用一次，存入缓存：
+
+python
+Copy
+Edit
+option_cache[ticker] = {'calls': ..., 'puts': ...}
+后续使用时直接用缓存，不再请求
+
+✅ 作用：
+避免重复访问 API
+
+防止 yfinance 限流或报错
+
+⑥ Excel 批量写入 + Summary 页
+📌 当前问题：
+每条记录 .append() 写一行到 Excel，速度慢
+
+Call / Put 各一条，数据重复量大，不利于快速选股
+
+✅ 优化方式：
+所有记录用 DataFrame 批量写入：
+
+python
+Copy
+Edit
+df.to_excel(writer, sheet_name='2025-07')
+额外创建一个 Summary sheet：
+
+python
+Copy
+Edit
+df_summary = df[df['Score'] >= 60].nlargest(10, 'Score')[['Ticker', 'Score', 'Sentiment', 'Price Change']]
+✅ 作用：
+写入速度提升 5～10 倍
+
+提供快速选股视图
+
+文件更轻，结构更清晰
+
+✅ 建议执行顺序（适合分窗口进行）
+步骤	优化编号	优先级	推荐理由
+第一步	⑤ 删除无效代码	⭐⭐⭐⭐⭐	无副作用，立即清除
+第二步	② 统一时间变量	⭐⭐⭐	小改动，提升一致性
+第三步	③ 后筛选 Top40	⭐⭐⭐⭐⭐	提高可维护性，结构清晰
+第四步	④ 批量拉收盘价	⭐⭐⭐⭐	显著提速，改动稍多
+第五步	① 缓存期权链	⭐⭐⭐⭐	减少重复请求，稳定性更强
+最后	⑥ Excel 批量写入	⭐⭐⭐⭐	优化输出结构和速度
+
+准备好了告诉我，从第几步开始，我会在新窗口中只执行该步改动，保留你现有逻辑，确保每次只改一块。

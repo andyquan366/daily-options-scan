@@ -14,11 +14,10 @@ from datetime import datetime
 from datetime import timedelta
 
 tz = pytz.timezone("America/Toronto")  # 先定义 tz
+
 now = datetime.now(tz)                 # 然后才能用 tz
 today = now.date()
 yesterday = today - timedelta(days=1)
-today_str = now.strftime('%Y-%m-%d')   # e.g., '2025-06-28'
-now_time_str = now.strftime('%H:%M')   # e.g., '21:03'
 
 
 # ==== 云端自动拉取最新 Excel ====
@@ -42,6 +41,13 @@ for i in range(len(nasdaq)):
     if symbol not in ticker_name_map:
         ticker_name_map[symbol] = nasdaq.loc[i, 'Company']
 
+
+# ✅ 全局设定 Toronto 本地时间，所有时间统一用 now，不可重复定义
+tz = pytz.timezone("America/Toronto")
+now = datetime.now(tz)
+today = now.date()
+today_str = now.strftime('%Y-%m-%d')   # e.g., '2025-06-28'
+now_time_str = now.strftime('%H:%M')   # e.g., '21:03'
 
 records = []
 volume_summary = {}
