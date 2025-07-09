@@ -43,8 +43,7 @@ for i in range(len(nasdaq)):
         ticker_name_map[symbol] = nasdaq.loc[i, 'Company']
 
 
-records = []
-volume_summary = {}
+records_raw = []
 
 
 # 模块顶层定义，循环外
@@ -206,31 +205,32 @@ for ticker in tickers:
         )
 
         for option_type, top_option in zip(['Call', 'Put'], [top_call, top_put]):
-            records.append({
+            records_raw.append({
                 'Date': today_str,'Time': now_time_str,'Ticker': ticker, 'Company': ticker_name_map.get(ticker, ''),
                 'Type': option_type, 'Strike': top_option['strike'],
                 'IV': round(top_option['impliedVolatility'] * 100, 2),
-                'Volume': int(top_option['volume']), 'Expiry': top_option['expiry'],'Premium Skew': premium_skew,
+                'Volume': int(top_option['volume']), 'Total Volume': total_volume, 
+                'Expiry': top_option['expiry'],'Premium Skew': premium_skew,
                 'IV Skew': iv_skew,'Volume Diff Ratio': round(volume_diff_ratio, 4), 
                 'Put/Call Ratio': put_call_ratio, 'Score': total_score,
                 'Sentiment': sentiment, 'Contract Symbol': top_option['contractSymbol'],
                 'Previous Close': close_price, 'Price Change': price_change, '7D Change': price_change_7d})
 
-        volume_summary[ticker] = total_volume
 
     except Exception as e:
         continue
 
-df = pd.DataFrame(records)
+df = pd.DataFrame(records_raw)
 if df.empty:
     exit()
 
-top40_tickers = sorted(volume_summary.items(), key=lambda x: x[1], reverse=True)[:40]
-top40_set = set(t[0] for t in top40_tickers)
-df = df[df['Ticker'].isin(top40_set)].copy()
+df = df[df['Total Volume'] > 3000]  # ✅ 集中过滤
+top40 = df.groupby('Ticker')['Total Volume'].sum().nlargest(40).index
+df = df[df['Ticker'].isin(top40)].copy()
+
 df['TypeRank'] = df['Type'].apply(lambda x: 0 if x == 'Call' else 1)
 df = df.sort_values(by=['Score', 'Ticker', 'TypeRank'], ascending=[False, True, True])
-df.drop(columns=['TypeRank'], inplace=True)  # ✅ 排序后立即删掉，避免导出
+df.drop(columns=['Total Volume', 'TypeRank'], inplace=True)  # ✅ 排序后立即删掉，避免导出
 
 
 sentiments = ["Strong Bullish", "Bullish", "Neutral", "Bearish", "Strong Bearish"]
