@@ -271,6 +271,7 @@ for sheet_name in wb.sheetnames:
     new_ws.column_dimensions['I'].width = 8
 
 auto_adjust_column_width(yearly_ws)
+yearly_ws.append([''] * 8)  # 添加空白行，防止被标签遮挡
 wb.save(file_name)
 
 if "GITHUB_ACTIONS" in os.environ:
