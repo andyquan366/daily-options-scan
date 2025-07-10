@@ -66,15 +66,30 @@ for ticker in tickers:
         stock = yf.Ticker(ticker)
         expiry_dates = stock.options
 
-        # 获取昨天（或最近交易日）的收盘价
+        # 获取最新价
+        # 获取昨天收盘价（用于兜底）
         close_price = get_recent_close(stock, yesterday)
         if close_price is not None:
             close_price = round(close_price, 2)
 
+        # 获取最新价（根据时间段判断字段优先级）
         try:
-            last_price = stock.fast_info["last_price"]
+                fi = stock.fast_info
+
+                tz = pytz.timezone("America/New_York")
+                now = datetime.now(tz)
+                hour = now.hour + now.minute / 60
+
+                if 4 <= hour < 9.5:
+                        last_price = fi.get("pre_market_price") or fi.get("last_price") or close_price
+                elif 9.5 <= hour <= 16:
+                        last_price = fi.get("last_price") or close_price
+                elif 16 < hour <= 20:
+                        last_price = fi.get("post_market_price") or fi.get("last_price") or close_price
+                else:
+                        last_price = fi.get("last_price") or close_price  # 夜盘时间段 fallback
         except:
-            last_price = close_price
+                last_price = close_price
 
 
 
