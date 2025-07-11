@@ -72,49 +72,32 @@ for ticker in tickers:
         if close_price is not None:
             close_price = round(close_price, 2)
 
-        # 获取最新价（根据时间段判断字段优先级）
-        try:
-                fi = stock.fast_info
-
-                tz = pytz.timezone("America/New_York")
-                now = datetime.now(tz)
-                hour = now.hour + now.minute / 60
-
-                if 4 <= hour < 9.5:
-                        last_price = fi.get("pre_market_price") or fi.get("last_price") or close_price
-                elif 9.5 <= hour <= 16:
-                        last_price = fi.get("last_price") or close_price
-                elif 16 < hour <= 20:
-                        last_price = fi.get("post_market_price") or fi.get("last_price") or close_price
-                else:
-                        last_price = fi.get("last_price") or close_price  # 夜盘时间段 fallback
-        except:
-                last_price = close_price
-
-
 
         # ✅ 计算涨跌幅（百分比）
         # ✅ 批量数据中计算2日收盘价（涨跌幅）
         try:
-            closes = price_df[ticker]['Close'].dropna()
-            if len(closes) >= 2:
-                prev_close = closes.iloc[-2]
-                price_change = round((last_price - prev_close) / prev_close, 4)
-            else:
+                closes = price_df[ticker]['Close'].dropna()
+                if len(closes) >= 2:
+                        prev_close = closes.iloc[-2]
+                        today_close = closes.iloc[-1]
+                        price_change = round((today_close - prev_close) / prev_close, 4)
+                else:
+                        price_change = None
+        except Exception:
                 price_change = None
-        except Exception:
-            price_change = None
 
-
-# ✅ 计算 7 天价格变化（百分比）
+        # 计算 7 天涨跌幅（百分比）
         try:
-            closes_7d = price_df[ticker]['Close'].dropna()
-            if len(closes_7d) >= 2:
-                week_start = closes_7d.iloc[0]
-                price_change_7d = round((last_price - week_start) / week_start, 4)
-            else:
-                price_change_7d = None
+                closes_7d = price_df[ticker]['Close'].dropna()
+                if len(closes_7d) >= 2:
+                        week_start = closes_7d.iloc[0]
+                        today_close = closes_7d.iloc[-1]
+                        price_change_7d = round((today_close - week_start) / week_start, 4)
+                else:
+                        price_change_7d = None
         except Exception:
+                price_change_7d = None
+
             price_change_7d = None
 
         expiry_dates = [e for e in expiry_dates if (datetime.strptime(e, "%Y-%m-%d").date() - today).days <= 10]
