@@ -66,38 +66,35 @@ for ticker in tickers:
         stock = yf.Ticker(ticker)
         expiry_dates = stock.options
 
-        # 获取最新价
-        # 获取昨天收盘价（用于兜底）
+        # 获取昨天（或最近交易日）的收盘价
         close_price = get_recent_close(stock, yesterday)
         if close_price is not None:
             close_price = round(close_price, 2)
 
-
         # ✅ 计算涨跌幅（百分比）
         # ✅ 批量数据中计算2日收盘价（涨跌幅）
         try:
-                closes = price_df[ticker]['Close'].dropna()
-                if len(closes) >= 2:
-                        prev_close = closes.iloc[-2]
-                        today_close = closes.iloc[-1]
-                        price_change = round((today_close - prev_close) / prev_close, 4)
-                else:
-                        price_change = None
-        except Exception:
+            closes = price_df[ticker]['Close'].dropna()
+            if len(closes) >= 2:
+                prev_close = closes.iloc[-2]
+                last_price = closes.iloc[-1]
+                price_change = round((last_price - prev_close) / prev_close, 4)
+            else:
                 price_change = None
-
-        # 计算 7 天涨跌幅（百分比）
-        try:
-                closes_7d = price_df[ticker]['Close'].dropna()
-                if len(closes_7d) >= 2:
-                        week_start = closes_7d.iloc[0]
-                        today_close = closes_7d.iloc[-1]
-                        price_change_7d = round((today_close - week_start) / week_start, 4)
-                else:
-                        price_change_7d = None
         except Exception:
-                price_change_7d = None
+            price_change = None
 
+
+# ✅ 计算 7 天价格变化（百分比）
+        try:
+            closes_7d = price_df[ticker]['Close'].dropna()
+            if len(closes_7d) >= 2:
+                week_start = closes_7d.iloc[0]
+                week_end = closes_7d.iloc[-1]
+                price_change_7d = round((week_end - week_start) / week_start, 4)
+            else:
+                price_change_7d = None
+        except Exception:
             price_change_7d = None
 
         expiry_dates = [e for e in expiry_dates if (datetime.strptime(e, "%Y-%m-%d").date() - today).days <= 10]
