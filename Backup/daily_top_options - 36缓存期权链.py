@@ -97,7 +97,7 @@ for ticker in tickers:
         except Exception:
             price_change_7d = None
 
-        expiry_dates = [e for e in expiry_dates if (datetime.strptime(e, "%Y-%m-%d").date() - today).days <= 10]
+        expiry_dates = [e for e in expiry_dates if (datetime.strptime(e, "%Y-%m-%d").date() - today).days <= 14]
         if not expiry_dates:
             continue
 
