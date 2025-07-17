@@ -15,7 +15,7 @@ wb = load_workbook(file_name)
 
 # 设置基准日为昨天
 today = datetime.today().date()
-base_day = today - timedelta(days=1)
+base_day = today - timedelta(days=2)
 
 pattern = re.compile(r"^\d{4}-\d{2}$")  # 匹配 yyyy-mm 格式
 
