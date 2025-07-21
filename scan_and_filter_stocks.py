@@ -231,9 +231,19 @@ for sheet_name in wb.sheetnames:
         pc = stock['Price Change']
         d7 = stock['7D Change']
 
-        if pc is not None and d7 is not None and d7 > 0:
-            ratio = pc / d7
-            if -0.7 <= ratio <= -0.2:
+# ✅ 原始标红条件：
+# 如果 Price Change 和 7D Change 都有值，且 7D Change > 0，
+# 且 Price Change / 7D Change 的比例在 [-0.7, -0.2] 之间，就标红
+#        if pc is not None and d7 is not None and d7 > 0:
+#            ratio = pc / d7
+#            if -0.7 <= ratio <= -0.2:
+
+
+# ✅ 现在标红条件：分数 ≥80 或 ≤20，且 Price Change ≥ 0
+        score = stock['AVG Score']
+        if (score >= 80 or score <= 20) and pc is not None and pc >= 0:
+
+
                 for col in range(1, 9):  # 把第1列到第8列全部标红
                     new_ws.cell(row=row_idx, column=col).fill = highlight_fill
 
