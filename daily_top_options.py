@@ -231,6 +231,7 @@ for ticker in tickers:
                 'Type': option_type, 'Strike': top_option['strike'],
                 'IV': round(top_option['impliedVolatility'] * 100, 2),
                 'Volume': int(top_option['volume']), 'Total Volume': total_volume, 
+                'OI': int(top_option['openInterest']),
                 'Expiry': top_option['expiry'],'Premium Skew': premium_skew,
                 'IV Skew': iv_skew,'Volume Diff Ratio': round(volume_diff_ratio, 4), 
                 'Put/Call Ratio': put_call_ratio, 'Score': total_score,
