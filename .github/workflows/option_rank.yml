@@ -14,19 +14,26 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install yfinance pandas google-auth google-auth-httplib2 google-api-python-client
-
-      - name: Create credentials file from base64 secret
+          pip install -r requirements.txt
+      - name: Create credential file
         run: |
-          echo "${{ secrets.GOOGLE_CREDENTIALS_JSON_BASE64 }}" | base64 -d > credentials.json
+          echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > credentials.json
+      - name: Install rclone
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rclone
+
+      - name: Create rclone config file
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "${{ secrets.RCLONE_CONF_BASE64 }}" | base64 --decode > ~/.config/rclone/rclone.conf
 
       - name: Run python option_rank.py
         run: |
