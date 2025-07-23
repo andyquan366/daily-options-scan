@@ -22,9 +22,11 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+
       - name: Create credential file
         run: |
           echo "${{ secrets.GOOGLE_CREDENTIALS_JSON }}" > credentials.json
+
       - name: Install rclone
         run: |
           sudo apt-get update
