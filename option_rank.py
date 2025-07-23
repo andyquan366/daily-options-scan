@@ -81,24 +81,33 @@ records_raw = []
 for ticker, _ in top10:
     company = ticker_name_map.get(ticker, '')
     close_price = last_price_dict.get(ticker, "")
+    # 保证 close_price 为 float 或 ""
+    try:
+        close_price = float(close_price)
+    except Exception:
+        close_price = ""
     df_options = option_detail_dict[ticker]
-    # 按volume从大到小选10个
     top_options = df_options.sort_values("volume", ascending=False).head(10)
     for _, opt in top_options.iterrows():
+        # 保证 strike 为 float 或 ""
+        try:
+            strike_val = float(opt["strike"])
+        except Exception:
+            strike_val = ""
         records_raw.append({
             "Date": today_str,
             "Time": now_time_str,
             "Ticker": ticker,
             "Company": company,
-            "Last": round(close_price, 2) if close_price not in ["", None] else "",
+            "Last": round(close_price, 2) if close_price != "" else "",
             "Type": opt["Type"],
-            "Strike": round(opt["strike"], 2) if pd.notna(opt["strike"]) else '',
+            "Strike": round(strike_val, 2) if strike_val != "" else "",
             "IV": round(opt["impliedVolatility"]*100, 2) if pd.notna(opt["impliedVolatility"]) else '',
             "Volume": int(opt["volume"]),
             "OI": int(opt["openInterest"]),
             "Expiry": opt["expiry"]
         })
-    records_raw.append({})  # 股票分块空行
+    records_raw.append({})
 
 # ==== 写入 Excel（完全符合你的要求） ====
 try:
