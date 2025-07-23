@@ -80,6 +80,7 @@ records_raw = []
 
 for ticker, _ in top10:
     company = ticker_name_map.get(ticker, '')
+    close_price = last_price_dict.get(ticker, "")
     df_options = option_detail_dict[ticker]
     # 按volume从大到小选10个
     top_options = df_options.sort_values("volume", ascending=False).head(10)

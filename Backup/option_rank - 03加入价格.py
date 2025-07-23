@@ -80,7 +80,6 @@ records_raw = []
 
 for ticker, _ in top10:
     company = ticker_name_map.get(ticker, '')
-    close_price = last_price_dict.get(ticker, "")
     df_options = option_detail_dict[ticker]
     # 按volume从大到小选10个
     top_options = df_options.sort_values("volume", ascending=False).head(10)
@@ -90,10 +89,10 @@ for ticker, _ in top10:
             "Time": now_time_str,
             "Ticker": ticker,
             "Company": company,
-            "Last": round(close_price, 2) if close_price not in ["", None] else "",
+            "Last": round(float(close_price), 2),
             "Type": opt["Type"],
-            "Strike": round(opt["strike"], 2) if pd.notna(opt["strike"]) else '',
-            "IV": round(opt["impliedVolatility"]*100, 2) if pd.notna(opt["impliedVolatility"]) else '',
+            "Strike": round(float(opt["strike"]), 2),
+            "IV": round(opt["impliedVolatility"]*100, 2),
             "Volume": int(opt["volume"]),
             "OI": int(opt["openInterest"]),
             "Expiry": opt["expiry"]

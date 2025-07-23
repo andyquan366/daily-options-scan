@@ -17,3 +17,7 @@ scan_and_filter_stocks.py
 e:
 cd E:\Investing\daily_top_options
 option_rank.py
+
+e:
+cd E:\Investing\daily_top_options
+test.py
