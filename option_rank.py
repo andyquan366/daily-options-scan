@@ -80,40 +80,24 @@ records_raw = []
 
 for ticker, _ in top10:
     company = ticker_name_map.get(ticker, '')
-    close_price = last_price_dict.get(ticker, np.nan)
-    try:
-        close_price = float(close_price)
-    except Exception:
-        close_price = np.nan
     df_options = option_detail_dict[ticker]
+    # 按volume从大到小选10个
     top_options = df_options.sort_values("volume", ascending=False).head(10)
     for _, opt in top_options.iterrows():
-        # Strike
-        try:
-            strike_val = float(opt["strike"])
-            strike_val = round(strike_val, 2)
-        except Exception:
-            strike_val = np.nan
-        # IV
-        try:
-            iv_val = float(opt["impliedVolatility"])
-            iv_val = round(iv_val * 100, 2)
-        except Exception:
-            iv_val = np.nan
         records_raw.append({
             "Date": today_str,
             "Time": now_time_str,
             "Ticker": ticker,
             "Company": company,
-            "Last": round(close_price, 2) if not np.isnan(close_price) else np.nan,
+            "Last": round(float(close_price), 2),
             "Type": opt["Type"],
-            "Strike": strike_val,
-            "IV": iv_val,
+            "Strike": round(float(opt["strike"]), 2),
+            "IV": round(opt["impliedVolatility"]*100, 2),
             "Volume": int(opt["volume"]),
             "OI": int(opt["openInterest"]),
             "Expiry": opt["expiry"]
         })
-    records_raw.append({})
+    records_raw.append({})  # 股票分块空行
 
 # ==== 写入 Excel（完全符合你的要求） ====
 try:
