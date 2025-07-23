@@ -35,19 +35,11 @@ for i in range(len(nasdaq)):
 option_records = []
 total_volume_dict = {}
 option_detail_dict = {}
-last_price_dict = {}
 
 for ticker in tickers:
     print(f"Processing {ticker}")
     try:
         stock = yf.Ticker(ticker)
-        # 抓当前价格
-        try:
-            close_price = stock.history(period="1d")["Close"].iloc[-1]
-        except Exception:
-            close_price = ""
-        last_price_dict[ticker] = close_price
-
         expiry_dates = [e for e in stock.options if (datetime.strptime(e, "%Y-%m-%d").date() - now.date()).days <= 14]
         all_options = []
         for expiry in expiry_dates:
@@ -80,7 +72,6 @@ records_raw = []
 
 for ticker, _ in top10:
     company = ticker_name_map.get(ticker, '')
-    close_price = last_price_dict.get(ticker, "")
     df_options = option_detail_dict[ticker]
     # 按volume从大到小选10个
     top_options = df_options.sort_values("volume", ascending=False).head(10)
@@ -90,7 +81,6 @@ for ticker, _ in top10:
             "Time": now_time_str,
             "Ticker": ticker,
             "Company": company,
-            "Last": close_price,
             "Type": opt["Type"],
             "Strike": opt["strike"],
             "IV": round(opt["impliedVolatility"]*100, 2) if pd.notna(opt["impliedVolatility"]) else '',
@@ -115,7 +105,7 @@ else:
         del wb["Sheet"]
     first_write = True
 
-headers = ["Date", "Time", "Ticker", "Company", "Last", "Type", "Strike", "IV", "Volume", "OI", "Expiry"]
+headers = ["Date", "Time", "Ticker", "Company", "Type", "Strike", "IV", "Volume", "OI", "Expiry"]
 
 if first_write:
     ws.append(headers)
@@ -129,7 +119,7 @@ for row in records_raw:
         ws.append([])
         continue
     ws.append([
-        row.get("Date", ""), row.get("Time", ""), row.get("Ticker", ""), row.get("Company", ""), row.get("Last", ""),
+        row.get("Date", ""), row.get("Time", ""), row.get("Ticker", ""), row.get("Company", ""),
         row.get("Type", ""), row.get("Strike", ""), row.get("IV", ""), row.get("Volume", ""), row.get("OI", ""), row.get("Expiry", "")
     ])
 
