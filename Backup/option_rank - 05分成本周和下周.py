@@ -184,6 +184,9 @@ for col in ws.columns:
     ws.column_dimensions[col_letter].width = max_length + 2
 
 wb.save(file_name)
+# ✅ 提示用户运行结束
+print("✅ option_rank 生成完毕，Excel 文件已保存：", file_name)
+
 
 # ==== 云端同步回传 ====
 if "GITHUB_ACTIONS" in os.environ:
