@@ -73,7 +73,19 @@ records_raw = []
 option_cache = {}
 
 print("⏬ 批量拉取最近7天全部股票的历史收盘价 ...")
-price_df = yf.download(tickers, period="7d", group_by="ticker")
+def batch_download(tickers, batch_size=500, **kwargs):
+    all_df = []
+    for i in range(0, len(tickers), batch_size):
+        sub = tickers[i:i+batch_size]
+        print(f"批量拉取 {i} ~ {i+len(sub)-1} ...")
+        df = yf.download(sub, **kwargs)
+        all_df.append(df)
+    # 合并所有 batch
+    df_all = pd.concat(all_df, axis=1)
+    return df_all
+
+price_df = batch_download(tickers, batch_size=500, period="7d", group_by="ticker")
+
 
 # 模块顶层定义，循环外
 def get_recent_close(stock, ref_date, max_lookback=7):
@@ -269,7 +281,9 @@ for ticker in tickers:
         continue
 
 df = pd.DataFrame(records_raw)
+print("收集到的数据行数：", len(df))
 if df.empty:
+    print("【警告】本次运行未获得任何有效期权数据，未写入Excel。")
     exit()
 
 df = df[df['Total Volume'] > 3000]  # ✅ 集中过滤
