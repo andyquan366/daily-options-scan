@@ -20,4 +20,8 @@ option_rank.py
 
 e:
 cd E:\Investing\daily_top_options
+option_Analysis.py
+
+e:
+cd E:\Investing\daily_top_options
 test.py
