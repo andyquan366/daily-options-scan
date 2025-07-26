@@ -49,15 +49,21 @@ for ticker in tickers:
         last_price_dict[ticker] = close_price
 
 
+        expiry_this_week = []
+        expiry_next_week = []
+
         try:
-            expiries = stock.options[:4]  # ✅ 获取最近 4 个到期日
-            expiry_this_week = expiries[:1]
-            expiry_next_week = expiries[1:2]
-            expiry_3rd_week = expiries[2:3]
-            expiry_4th_week = expiries[3:4]
+            this_friday = now + timedelta(days=(4 - now.weekday()) % 7)  # 本周五
+            for e in stock.options:
+                exp_date = datetime.strptime(e, "%Y-%m-%d").date()
+                days_diff = (exp_date - now.date()).days
+                if 0 <= days_diff <= 14:
+                    if exp_date <= this_friday.date():
+                        expiry_this_week.append(e)
+                    else:
+                        expiry_next_week.append(e)
         except:
             continue  # 某些股票没有 options 字段或格式错误时跳过
-
 
         def fetch_option_block(expiry_list, label):
             all_opts = []
@@ -80,14 +86,15 @@ for ticker in tickers:
 
         df1 = fetch_option_block(expiry_this_week, "This Week")
         df2 = fetch_option_block(expiry_next_week, "Next Week")
-        df3 = fetch_option_block(expiry_3rd_week, "Third Week")
-        df4 = fetch_option_block(expiry_4th_week, "Fourth Week")
 
-
-        dfs = [df for df in [df1, df2, df3, df4] if df is not None]
-        if not dfs:
+        if df1 is not None and df2 is not None:
+            df_options = pd.concat([df1, df2], ignore_index=True)
+        elif df1 is not None:
+            df_options = df1
+        elif df2 is not None:
+            df_options = df2
+        else:
             continue  # 无可用期权，跳过
-        df_options = pd.concat(dfs, ignore_index=True)
 
 
         total_volume = df_options["volume"].sum()
@@ -108,7 +115,7 @@ for ticker, _ in top10:
     # 按volume从大到小选10个
 
 # ========== 分块处理 ==========
-    for group_label in ["This Week", "Next Week", "Third Week", "Fourth Week"]:
+    for group_label in ["This Week", "Next Week"]:
         block = df_options[df_options["Group"] == group_label]
         if block.empty:
             continue
