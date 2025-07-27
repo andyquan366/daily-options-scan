@@ -2,7 +2,7 @@ name: fill_3d_7d_forward_change
 
 on:
   schedule:
-    - cron: '15 * * * 0-5' # 周日到周五，每小时一次
+    - cron: '0,30 13-20 * * 1-5'  # 每小时的第0分和30分，周一至周五
     - cron: '15 1,7,13,19 * * 6' # 周六，运行4次
 
   workflow_dispatch:   # ✅ 允许手动触发
