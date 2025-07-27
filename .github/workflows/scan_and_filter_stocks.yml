@@ -3,6 +3,7 @@ name: scan_and_filter_stocks
 on:
   schedule:
     - cron: '45 * * * 0-5' # 周日到周五，每小时一次
+    - cron: '45 1,7,13,19 * * 6' # 周六，运行4次
 
   workflow_dispatch:   # ✅ 允许手动触发
 
