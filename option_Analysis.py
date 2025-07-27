@@ -18,7 +18,7 @@ file_name = "option_Analysis.xlsx"
 
 # ==== 云端自动拉取最新 Excel ====
 if "GITHUB_ACTIONS" in os.environ:
-    os.system('rclone copy "gdrive:/Investing/Daily top options/option_Analysis" ./ --drive-chunk-size 64M --progress --ignore-times')
+    os.system('rclone copy "gdrive:/Investing/Daily top options/option_Analysis.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
 
 # ==== 自定义股票列表（只分析你关心的） ====
 tickers = ["GRRR", "HIVE", "TMDX"]  # ← 你可以自定义多个
