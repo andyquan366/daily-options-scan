@@ -21,7 +21,7 @@ if "GITHUB_ACTIONS" in os.environ:
     os.system('rclone copy "gdrive:/Investing/Daily top options/option_Analysis.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
 
 # ==== 自定义股票列表（只分析你关心的） ====
-tickers = ["GRRR", "HIVE", "TMDX"]  # ← 你可以自定义多个
+tickers = ["GRRR", "HIVE", "TMDX", "ONDS", "SES"]  # ← 你可以自定义多个
 ticker_name_map = {}
 for t in tickers:
     try:
@@ -30,7 +30,7 @@ for t in tickers:
     except:
         ticker_name_map[t] = t
 
-# ==== 抓取每只股票14天内所有期权，累计总成交量 ====
+# ==== 抓取每只股票28天内所有期权，累计总成交量 ====
 option_records = []
 total_volume_dict = {}
 option_detail_dict = {}
@@ -122,11 +122,12 @@ def calc_greeks(option_type, S, K, T_days, IV, r=0.05):
     except:
         return 0.0, 0.0, 0.0
 
-# ========== 分析成交量最高的前10只股票 ==========
-top10 = sorted(total_volume_dict.items(), key=lambda x: -x[1])[:10]
+# ========== 分析关注的股票 ==========
 records_raw = []
 
-for ticker, _ in top10:
+for ticker in tickers:
+    if ticker not in option_detail_dict:
+        continue  # 跳过没有期权数据的
     company = ticker_name_map.get(ticker, '')
     close_price = last_price_dict.get(ticker, "")
     df_options = option_detail_dict[ticker]
@@ -137,7 +138,7 @@ for ticker, _ in top10:
         if block.empty:
             continue
 
-        top_block = block.sort_values("volume", ascending=False).head(10)
+        top_block = block.sort_values("volume", ascending=False).head(20)
 
         for _, opt in top_block.iterrows():
             try:
