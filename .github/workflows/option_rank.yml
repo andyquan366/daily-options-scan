@@ -2,7 +2,7 @@ name: option_rank
 
 on:
   schedule:
-    - cron: '0,30 13-20 * * 1-5'  # 每小时的第0分和30分，周一至周五
+    - cron: '0,30 12-20 * * 1-5'  # 每小时的第0分和30分，周一至周五
 
   workflow_dispatch:   # ✅ 允许手动触发
 
