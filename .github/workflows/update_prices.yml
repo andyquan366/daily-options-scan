@@ -2,7 +2,7 @@ name: update_prices
 
 on:
   schedule:
-    - cron: '0,15,30,45 * * * 0-6'  # 每小时4次
+    - cron: '*/15 * * * 0-6'  # 每小时4次
 
   workflow_dispatch:   # ✅ 允许手动触发
 
