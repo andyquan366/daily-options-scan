@@ -14,27 +14,23 @@ now = datetime.now(tz)
 today_str = now.strftime('%Y-%m-%d')
 now_time_str = now.strftime('%H:%M')
 month_sheet_name = now.strftime('%Y-%m')
-file_name = "option_rank.xlsx"
+file_name = "option_Analysis.xlsx"
 
 # ==== 云端自动拉取最新 Excel ====
 if "GITHUB_ACTIONS" in os.environ:
-    os.system('rclone copy "gdrive:/Investing/Daily top options/option_rank.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
+    os.system('rclone copy "gdrive:/Investing/Daily top options/option_Analysis.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
 
-# ==== 股票列表 ====
-sp500 = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
-nasdaq = pd.read_html('https://en.wikipedia.org/wiki/Nasdaq-100')[4]
-tickers = list(set(sp500['Symbol'].tolist() + nasdaq['Ticker'].tolist()))
-tickers = [t.replace('.', '-') for t in tickers]
+# ==== 自定义股票列表（只分析你关心的） ====
+tickers = ["GRRR", "HIVE", "TMDX", "ONDS", "SES", "UMAC", "DPRO", "UUUU"]  # ← 你可以自定义多个
 ticker_name_map = {}
-for i in range(len(sp500)):
-    symbol = sp500.loc[i, 'Symbol'].replace('.', '-')
-    ticker_name_map[symbol] = sp500.loc[i, 'Security']
-for i in range(len(nasdaq)):
-    symbol = nasdaq.loc[i, 'Ticker'].replace('.', '-')
-    if symbol not in ticker_name_map:
-        ticker_name_map[symbol] = nasdaq.loc[i, 'Company']
+for t in tickers:
+    try:
+        info = yf.Ticker(t).info
+        ticker_name_map[t] = info.get("shortName", t)
+    except:
+        ticker_name_map[t] = t
 
-# ==== 抓取每只股票14天内所有期权，累计总成交量 ====
+# ==== 抓取每只股票28天内所有期权，累计总成交量 ====
 option_records = []
 total_volume_dict = {}
 option_detail_dict = {}
@@ -126,11 +122,12 @@ def calc_greeks(option_type, S, K, T_days, IV, r=0.05):
     except:
         return 0.0, 0.0, 0.0
 
-# ========== 分析成交量最高的前10只股票 ==========
-top10 = sorted(total_volume_dict.items(), key=lambda x: -x[1])[:10]
+# ========== 分析关注的股票 ==========
 records_raw = []
 
-for ticker, _ in top10:
+for ticker in tickers:
+    if ticker not in option_detail_dict:
+        continue  # 跳过没有期权数据的
     company = ticker_name_map.get(ticker, '')
     close_price = last_price_dict.get(ticker, "")
     df_options = option_detail_dict[ticker]
@@ -141,7 +138,7 @@ for ticker, _ in top10:
         if block.empty:
             continue
 
-        top_block = block.sort_values("volume", ascending=False).head(10)
+        top_block = block.sort_values("volume", ascending=False).head(20)
 
         for _, opt in top_block.iterrows():
             try:
@@ -201,7 +198,6 @@ else:
 
 headers = ["Date", "Time", "Ticker", "Company", "Last", "Type", "Strike", "IV", "Volume", "OI", "Expiry", "OptionSymbol", "OptionLast", "OptionBid", "OptionAsk", "Delta", "Gamma", "Theta"]
 
-
 if first_write:
     ws.append(headers)
     ws.freeze_panes = "A2"
@@ -234,9 +230,9 @@ for col in ws.columns:
 
 wb.save(file_name)
 # ✅ 提示用户运行结束
-print("✅ option_rank 生成完毕，Excel 文件已保存：", file_name)
+print("✅ option_Analysis 生成完毕，Excel 文件已保存：", file_name)
 
 
 # ==== 云端同步回传 ====
 if "GITHUB_ACTIONS" in os.environ:
-    os.system('rclone copy ./option_rank.xlsx "gdrive:/Investing/Daily top options" --drive-chunk-size 64M --progress --ignore-times')
+    os.system('rclone copy ./option_Analysis.xlsx "gdrive:/Investing/Daily top options" --drive-chunk-size 64M --progress --ignore-times')
