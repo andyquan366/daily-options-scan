@@ -21,7 +21,7 @@ if "GITHUB_ACTIONS" in os.environ:
     os.system('rclone copy "gdrive:/Investing/Daily top options/option_Analysis.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
 
 # ==== 自定义股票列表（只分析你关心的） ====
-tickers = ["GRRR", "HIVE", "TMDX", "ONDS", "SES", "UMAC", "DPRO"]  # ← 你可以自定义多个
+tickers = ["GRRR", "HIVE", "TMDX", "ONDS", "SES", "UMAC", "DPRO", "UUUU"]  # ← 你可以自定义多个
 ticker_name_map = {}
 for t in tickers:
     try:
