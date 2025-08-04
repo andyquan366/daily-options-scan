@@ -168,6 +168,9 @@ for ticker in tickers:
                     "OI": int(opt["openInterest"]),
                     "Expiry": opt["expiry"],
                     "OptionSymbol": opt["contractSymbol"],
+                    "OptionLast": opt.get("lastPrice", ""),
+                    "OptionBid": opt.get("bid", ""),
+                    "OptionAsk": opt.get("ask", ""),
                     "Delta": round(delta, 4),
                     "Gamma": round(gamma, 6),
                     "Theta": round(theta, 6)
@@ -193,7 +196,7 @@ else:
         del wb["Sheet"]
     first_write = True
 
-headers = ["Date", "Time", "Ticker", "Company", "Last", "Type", "Strike", "IV", "Volume", "OI", "Expiry", "OptionSymbol", "Delta", "Gamma", "Theta"]
+headers = ["Date", "Time", "Ticker", "Company", "Last", "Type", "Strike", "IV", "Volume", "OI", "Expiry", "OptionSymbol", "OptionLast", "OptionBid", "OptionAsk", "Delta", "Gamma", "Theta"]
 
 if first_write:
     ws.append(headers)
@@ -208,7 +211,9 @@ for row in records_raw:
         continue
     ws.append([
         row.get("Date", ""), row.get("Time", ""), row.get("Ticker", ""), row.get("Company", ""), row.get("Last", ""),
-        row.get("Type", ""), row.get("Strike", ""), row.get("IV", ""), row.get("Volume", ""), row.get("OI", ""), row.get("Expiry", ""), row.get("OptionSymbol", ""), row.get("Delta", ""), row.get("Gamma", ""), row.get("Theta", "")
+        row.get("Type", ""), row.get("Strike", ""), row.get("IV", ""), row.get("Volume", ""), row.get("OI", ""),                
+        row.get("Expiry", ""), row.get("OptionSymbol", ""), row.get("OptionLast", ""), row.get("OptionBid", ""), row.get("OptionAsk", ""),
+        row.get("Delta", ""), row.get("Gamma", ""), row.get("Theta", "")
     ])
 
 # 自动列宽
