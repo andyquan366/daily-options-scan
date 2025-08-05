@@ -192,7 +192,7 @@ else:
         del wb["Sheet"]
     first_write = True
 
-headers = ["Date", "Time", "Ticker", "Last", "Type", "Strike", "IV", "Volume", "OI", "Expiry", "OptionLast", "OptionBid", "OptionAsk", "Delta", "Gamma", "Theta"]
+headers = ["Date", "Time", "Ticker", "Last", "Type", "Strike", "IV", "Volume", "OI", "Expiry", "OptionLast"]
 
 
 if first_write:
