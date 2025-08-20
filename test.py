@@ -1,14 +1,23 @@
+# temp_ondo_cad.py
 import requests
 
-url = "https://api.kraken.com/0/public/Depth"
-params = {"pair": "SOLCAD", "count": 5}
+def get_ondo_cad():
+    url = "https://api.coingecko.com/api/v3/simple/price"
+    params = {
+        "ids": "ondo-finance",   # 正确的 CoinGecko ID
+        "vs_currencies": "cad"
+    }
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        data = response.json()
+        print("调试返回:", data)
+        if "ondo-finance" in data and "cad" in data["ondo-finance"]:
+            price = data["ondo-finance"]["cad"]
+            print(f"当前 1 ONDO ≈ {price:.4f} CAD")
+        else:
+            print("返回结果里没有 ondo-finance，可能被限流")
+    except Exception as e:
+        print(f"获取 ONDO-CAD 失败: {e}")
 
-resp = requests.get(url, params=params)
-data = resp.json()
-
-pair = list(data['result'].keys())[0]
-bids = data['result'][pair]['bids']
-asks = data['result'][pair]['asks']
-
-print(f"Kraken SOL/CAD 最优买价(Bid): {bids[0][0]}, 数量: {bids[0][1]}")
-print(f"Kraken SOL/CAD 最优卖价(Ask): {asks[0][0]}, 数量: {asks[0][1]}")
+if __name__ == "__main__":
+    get_ondo_cad()

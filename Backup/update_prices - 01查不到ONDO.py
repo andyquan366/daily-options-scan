@@ -1,5 +1,4 @@
 import yfinance as yf
-import requests
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
@@ -19,24 +18,15 @@ def fetch_prices(tickers):
     prices = []
     for ticker in tickers:
         try:
-            if ticker == "ONDO-CAD":
-                # 用 CoinGecko API 获取 ONDO → CAD
-                url = "https://api.coingecko.com/api/v3/simple/price"
-                params = {"ids": "ondo-finance", "vs_currencies": "cad"}
-                data = requests.get(url, params=params, timeout=10).json()
-                price = data["ondo-finance"]["cad"]
-                prices.append(round(price, 2))
-                continue  # 跳过 yfinance
-            # 其他 ticker 走 yfinance
             t = yf.Ticker(ticker)
             data = t.history(period="1d")
             price = data['Close'].iloc[-1]
-            prices.append(round(price, 2))
+            price_rounded = round(price, 2)
+            prices.append(price_rounded)
         except Exception as e:
             print(f"Error fetching {ticker}: {e}")
             prices.append(None)
     return prices
-
 
 def write_prices_to_sheet_split(prices):
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
