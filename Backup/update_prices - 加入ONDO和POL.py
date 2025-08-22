@@ -1,4 +1,5 @@
 import yfinance as yf
+import requests
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
@@ -11,22 +12,44 @@ tickers = [
     "YAMD.NE",
     "YPLT.NE",
     "SOL-CAD",
-    "ONDO-CAD"
+    "ONDO-CAD",
+    "POL-CAD"
 ]
 
 def fetch_prices(tickers):
     prices = []
     for ticker in tickers:
         try:
+            if ticker == "ONDO-CAD":
+                # 用 CoinGecko API 获取 ONDO → CAD
+                url = "https://api.coingecko.com/api/v3/simple/price"
+                params = {"ids": "ondo-finance", "vs_currencies": "cad"}
+                data = requests.get(url, params=params, timeout=10).json()
+                price = data["ondo-finance"]["cad"]
+                prices.append(round(price, 2))
+                continue  # 跳过 yfinance
+
+            if ticker == "POL-CAD":
+                # 用 CoinGecko API 获取 Polygon (POL) → CAD
+                url = "https://api.coingecko.com/api/v3/simple/price"
+                params = {"ids": "polygon-ecosystem-token", "vs_currencies": "cad"}
+                data = requests.get(url, params=params, timeout=10).json()
+                price = data["polygon-ecosystem-token"]["cad"]
+                prices.append(round(price, 2))
+                continue  # 跳过 yfinance
+
+            # 其他 ticker 默认走 yfinance
             t = yf.Ticker(ticker)
             data = t.history(period="1d")
             price = data['Close'].iloc[-1]
-            price_rounded = round(price, 2)
-            prices.append(price_rounded)
+            prices.append(round(price, 2))
+
         except Exception as e:
             print(f"Error fetching {ticker}: {e}")
             prices.append(None)
+
     return prices
+
 
 def write_prices_to_sheet_split(prices):
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -37,11 +60,11 @@ def write_prices_to_sheet_split(prices):
 
     SPREADSHEET_ID = '1Rfs87zMtB9hyhkRiW1UGnAuNeLjQEcb_-9yRtLjRATI'
 
-    ranges = ["'ETF'!F14:F15", "'ETF'!F18:F22", "'ETF'!F38:F39"]
+    ranges = ["'ETF'!F14:F15", "'ETF'!F18:F22", "'ETF'!F38:F40"]
     values_list = [
         [[prices[0]], [prices[1]]],
         [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]],
-        [[prices[7]],[prices[8]]]
+        [[prices[7]],[prices[8]],[prices[9]]]
     ]
 
     for rng, vals in zip(ranges, values_list):
