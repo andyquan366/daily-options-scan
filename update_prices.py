@@ -13,7 +13,6 @@ tickers = [
     "YPLT.NE",
     "SOL-CAD",
     "ONDO-CAD",
-    "POL-CAD",
     "LINK-CAD",
     "JUP-CAD"
 ]
@@ -29,15 +28,6 @@ def fetch_prices(tickers):
                 data = requests.get(url, params=params, timeout=10).json()
                 price = data["ondo-finance"]["cad"]
                 prices.append(round(price, 2))
-                continue  # 跳过 yfinance
-
-            if ticker == "POL-CAD":
-                # 用 CoinGecko API 获取 Polygon (POL) → CAD
-                url = "https://api.coingecko.com/api/v3/simple/price"
-                params = {"ids": "polygon-ecosystem-token", "vs_currencies": "cad"}
-                data = requests.get(url, params=params, timeout=10).json()
-                price = data["polygon-ecosystem-token"]["cad"]
-                prices.append(round(price, 6))
                 continue  # 跳过 yfinance
 
             if ticker == "LINK-CAD":
@@ -81,11 +71,11 @@ def write_prices_to_sheet_split(prices):
 
     SPREADSHEET_ID = '1Rfs87zMtB9hyhkRiW1UGnAuNeLjQEcb_-9yRtLjRATI'
 
-    ranges = ["'ETF'!F14:F15", "'ETF'!F18:F22", "'ETF'!F38:F42"]
+    ranges = ["'ETF'!F14:F15", "'ETF'!F18:F22", "'ETF'!F38:F41"]
     values_list = [
         [[prices[0]], [prices[1]]],
         [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]],
-        [[prices[7]],[prices[8]],[prices[9]],[prices[10]],[prices[11]]]
+        [[prices[7]],[prices[8]],[prices[9]],[prices[10]]]
     ]
 
     for rng, vals in zip(ranges, values_list):
