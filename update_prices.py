@@ -50,19 +50,30 @@ def fetch_prices(tickers):
                 continue  # 跳过 yfinance
 
             if ticker == "JUP-CAD":
-                # 用 Binance API 获取 JUP/USDT，再换算 CAD
-                url = "https://api.binance.com/api/v3/ticker/price"
-                params = {"symbol": "JUPUSDT"}
-                jup_usd = float(requests.get(url, params=params, timeout=10).json()["price"])
+                try:
+                    # Binance JUP/USDT
+                    url = "https://api.binance.com/api/v3/ticker/price"
+                    params = {"symbol": "JUPUSDT"}
+                    resp = requests.get(url, params=params, timeout=10).json()
+                    print("Binance 返回:", resp)
+                    jup_usd = float(resp["price"])
 
-                # 获取美元 → 加元汇率
-                fx_url = "https://open.er-api.com/v6/latest/USD"
-                fx = requests.get(fx_url, timeout=10).json()
-                cad_rate = fx["rates"]["CAD"]
+                    # 美元 → 加元汇率
+                    fx_url = "https://open.er-api.com/v6/latest/USD"
+                    fx = requests.get(fx_url, timeout=10).json()
+                    print("汇率返回:", fx)
+                    cad_rate = fx.get("rates", {}).get("CAD")
 
-                price = jup_usd * cad_rate
-                prices.append(round(price, 6))
-                continue  # 跳过 yfinance
+                    if cad_rate is None:
+                        raise ValueError("未找到 CAD 汇率")
+
+                    price = jup_usd * cad_rate
+                    print(f"JUP 计算: {jup_usd} USD * {cad_rate} = {price} CAD")
+                    prices.append(round(price, 6))
+                except Exception as e:
+                    print(f"获取 JUP-CAD 失败: {e}")
+                    prices.append(None)
+                continue
 
 
             # 其他 ticker 默认走 yfinance
