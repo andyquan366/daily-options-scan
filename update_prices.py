@@ -52,9 +52,9 @@ def fetch_prices(tickers):
             if ticker == "JUP-CAD":
                 # 用 CoinGecko API 获取 Jupiter (JUP) → CAD
                 url = "https://api.coingecko.com/api/v3/simple/price"
-                params = {"ids": "jupiter-exchange", "vs_currencies": "cad"}
+                params = {"ids": "jupiter", "vs_currencies": "cad"}
                 data = requests.get(url, params=params, timeout=10).json()
-                price = data["jupiter-exchange"]["cad"]
+                price = data["jupiter"]["cad"]
                 prices.append(round(price, 6))
                 continue  # 跳过 yfinance
 
