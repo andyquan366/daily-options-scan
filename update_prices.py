@@ -14,7 +14,8 @@ tickers = [
     "SOL-CAD",
     "ONDO-CAD",
     "POL-CAD",
-    "LINK-CAD"
+    "LINK-CAD",
+    "JUP-CAD"
 ]
 
 def fetch_prices(tickers):
@@ -36,7 +37,7 @@ def fetch_prices(tickers):
                 params = {"ids": "polygon-ecosystem-token", "vs_currencies": "cad"}
                 data = requests.get(url, params=params, timeout=10).json()
                 price = data["polygon-ecosystem-token"]["cad"]
-                prices.append(round(price, 2))
+                prices.append(round(price, 6))
                 continue  # 跳过 yfinance
 
             if ticker == "LINK-CAD":
@@ -46,6 +47,15 @@ def fetch_prices(tickers):
                 data = requests.get(url, params=params, timeout=10).json()
                 price = data["chainlink"]["cad"]
                 prices.append(round(price, 2))
+                continue  # 跳过 yfinance
+
+            if ticker == "JUP-CAD":
+                # 用 CoinGecko API 获取 Jupiter (JUP) → CAD
+                url = "https://api.coingecko.com/api/v3/simple/price"
+                params = {"ids": "jupiter-exchange", "vs_currencies": "cad"}
+                data = requests.get(url, params=params, timeout=10).json()
+                price = data["Jupiter"]["cad"]
+                prices.append(round(price, 6))
                 continue  # 跳过 yfinance
 
             # 其他 ticker 默认走 yfinance
@@ -70,11 +80,11 @@ def write_prices_to_sheet_split(prices):
 
     SPREADSHEET_ID = '1Rfs87zMtB9hyhkRiW1UGnAuNeLjQEcb_-9yRtLjRATI'
 
-    ranges = ["'ETF'!F14:F15", "'ETF'!F18:F22", "'ETF'!F38:F41"]
+    ranges = ["'ETF'!F14:F15", "'ETF'!F18:F22", "'ETF'!F38:F42"]
     values_list = [
         [[prices[0]], [prices[1]]],
         [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]],
-        [[prices[7]],[prices[8]],[prices[9]],[prices[10]]]
+        [[prices[7]],[prices[8]],[prices[9]],[prices[10]],[prices[11]]]
     ]
 
     for rng, vals in zip(ranges, values_list):
