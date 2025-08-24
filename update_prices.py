@@ -53,20 +53,17 @@ def fetch_prices(tickers):
                 # Binance JUP/USDT
                 url = "https://api.binance.com/api/v3/ticker/price"
                 params = {"symbol": "JUPUSDT"}
-                resp = requests.get(url, params=params, timeout=10).json()
-                print("Binance 返回:", resp)  # 调试
-                jup_usd = float(resp["price"])
+                jup_usd = float(requests.get(url, params=params, timeout=10).json()["price"])
 
                 # USD → CAD 汇率
                 fx_url = "https://open.er-api.com/v6/latest/USD"
                 fx = requests.get(fx_url, timeout=10).json()
-                print("汇率返回:", fx)  # 调试
                 cad_rate = fx["rates"]["CAD"]
 
                 jup_cad = jup_usd * cad_rate
-                print(f"当前 1 JUP ≈ {jup_usd:.4f} USD / {jup_cad:.4f} CAD")
                 prices.append(round(jup_cad, 6))
                 continue
+
 
 
             # 其他 ticker 默认走 yfinance
