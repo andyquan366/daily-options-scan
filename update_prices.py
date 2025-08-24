@@ -50,13 +50,20 @@ def fetch_prices(tickers):
                 continue  # 跳过 yfinance
 
             if ticker == "JUP-CAD":
-                # 用 CoinGecko API 获取 Jupiter (JUP) → CAD
-                url = "https://api.coingecko.com/api/v3/simple/price"
-                params = {"ids": "jupiter", "vs_currencies": "cad"}
-                data = requests.get(url, params=params, timeout=10).json()
-                price = data["jupiter"]["cad"]
+                # 用 Binance API 获取 JUP/USDT，再换算 CAD
+                url = "https://api.binance.com/api/v3/ticker/price"
+                params = {"symbol": "JUPUSDT"}
+                jup_usd = float(requests.get(url, params=params, timeout=10).json()["price"])
+
+                # 获取美元 → 加元汇率
+                fx_url = "https://open.er-api.com/v6/latest/USD"
+                fx = requests.get(fx_url, timeout=10).json()
+                cad_rate = fx["rates"]["CAD"]
+
+                price = jup_usd * cad_rate
                 prices.append(round(price, 6))
                 continue  # 跳过 yfinance
+
 
             # 其他 ticker 默认走 yfinance
             t = yf.Ticker(ticker)

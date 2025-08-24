@@ -1,27 +1,32 @@
+# test_ondo_jup.py
 import requests
 
-def get_price(token_id, symbol):
+def get_ondo_cad():
+    """用 CoinGecko simple/price 获取 ONDO → CAD"""
     url = "https://api.coingecko.com/api/v3/simple/price"
-    params = {"ids": token_id, "vs_currencies": "cad"}
-    headers = {"User-Agent": "Mozilla/5.0"}  # 防止被屏蔽
+    params = {"ids": "ondo-finance", "vs_currencies": "usd,cad"}
+    data = requests.get(url, params=params, timeout=10).json()
+    print("ONDO 调试返回:", data)
+    usd = data["ondo-finance"]["usd"]
+    cad = data["ondo-finance"]["cad"]
+    print(f"当前 1 ONDO ≈ {usd} USD / {cad} CAD")
 
-    try:
-        response = requests.get(url, params=params, headers=headers, timeout=10)
-        data = response.json()
-        print(f"{symbol} 调试返回:", data)
-        if token_id in data and "cad" in data[token_id]:
-            price = data[token_id]["cad"]
-            print(f"当前 1 {symbol} ≈ {price:.4f} CAD")
-        else:
-            print(f"{symbol} 没有拿到价格，可能是 API 限流或 ID 错误")
-    except Exception as e:
-        print(f"获取 {symbol}-CAD 失败: {e}")
+def get_jup_cad():
+    """用 Binance JUP/USDT 再换算 CAD"""
+    # Binance JUP/USDT
+    url = "https://api.binance.com/api/v3/ticker/price"
+    params = {"symbol": "JUPUSDT"}
+    jup_usd = float(requests.get(url, params=params, timeout=10).json()["price"])
+
+    # 美元 → 加元汇率 (用 open.er-api.com)
+    fx_url = "https://open.er-api.com/v6/latest/USD"
+    fx = requests.get(fx_url, timeout=10).json()
+    cad_rate = fx["rates"]["CAD"]
+
+    jup_cad = jup_usd * cad_rate
+    print(f"当前 1 JUP ≈ {jup_usd:.4f} USD / {jup_cad:.4f} CAD")
 
 if __name__ == "__main__":
-    # ONDO (正确ID: ondo-finance)
-    get_price("ondo-finance", "ONDO")
+    get_ondo_cad()
     print("-" * 50)
-    # JUP (CoinGecko 正确ID 可能是 jupiter，但你之前用 jupiter-exchange 返回空)
-    # 建议测试两种：jupiter-exchange 和 jupiter
-    get_price("jupiter-exchange", "JUP")
-    get_price("jupiter", "JUP(alt)")
+    get_jup_cad()
