@@ -53,7 +53,11 @@ def fetch_prices(tickers):
                 # Binance JUP/USDT
                 url = "https://api.binance.com/api/v3/ticker/price"
                 params = {"symbol": "JUPUSDT"}
-                jup_usd = float(requests.get(url, params=params, timeout=10).json()["price"])
+                resp = requests.get(url, params=params, timeout=10).json()
+                if "price" not in resp:
+                    raise ValueError(f"Binance 返回异常: {resp}")
+
+                jup_usd = float(resp["price"])
 
                 # USD → CAD 汇率
                 fx_url = "https://open.er-api.com/v6/latest/USD"
@@ -63,7 +67,6 @@ def fetch_prices(tickers):
                 jup_cad = jup_usd * cad_rate
                 prices.append(round(jup_cad, 6))
                 continue
-
 
 
             # 其他 ticker 默认走 yfinance
