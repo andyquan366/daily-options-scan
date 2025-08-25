@@ -21,10 +21,21 @@ if "GITHUB_ACTIONS" in os.environ:
     os.system('rclone copy "gdrive:/Investing/Daily top options/option_rank.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
 
 # ==== 股票列表 ====
-sp500 = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]
-nasdaq = pd.read_html('https://en.wikipedia.org/wiki/Nasdaq-100')[4]
+# === 标普500
+url_sp500 = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+headers = {"User-Agent": "Mozilla/5.0"}
+html_sp500 = requests.get(url_sp500, headers=headers).text
+sp500 = pd.read_html(html_sp500)[0]
+
+# === 纳指100
+url_nasdaq = "https://en.wikipedia.org/wiki/Nasdaq-100"
+html_nasdaq = requests.get(url_nasdaq, headers=headers).text
+nasdaq = pd.read_html(html_nasdaq)[4]
+
+# === 合并
 tickers = list(set(sp500['Symbol'].tolist() + nasdaq['Ticker'].tolist()))
 tickers = [t.replace('.', '-') for t in tickers]
+
 ticker_name_map = {}
 for i in range(len(sp500)):
     symbol = sp500.loc[i, 'Symbol'].replace('.', '-')
