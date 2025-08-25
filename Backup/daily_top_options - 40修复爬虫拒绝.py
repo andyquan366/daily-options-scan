@@ -40,9 +40,12 @@ sp500_tickers = [t.replace('.', '-') for t in sp500['Symbol']]
 sp500_names = dict(zip(sp500['Symbol'].str.replace('.', '-'), sp500['Security']))
 
 # === 纳指100
-nasdaq100 = pd.read_html('https://en.wikipedia.org/wiki/Nasdaq-100')[4]
+url_nasdaq = "https://en.wikipedia.org/wiki/Nasdaq-100"
+html_nasdaq = requests.get(url_nasdaq, headers=headers).text
+nasdaq100 = pd.read_html(html_nasdaq)[4]
 nasdaq100_tickers = [t.replace('.', '-') for t in nasdaq100['Ticker']]
 nasdaq100_names = dict(zip(nasdaq100['Ticker'].str.replace('.', '-'), nasdaq100['Company']))
+
 
 # === 纳斯达克全市场
 url = "http://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt"
