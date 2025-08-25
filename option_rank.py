@@ -7,6 +7,8 @@ from openpyxl.utils import get_column_letter
 import pytz
 from math import log, sqrt, exp
 from scipy.stats import norm
+import requests
+
 
 
 tz = pytz.timezone("America/Toronto")
