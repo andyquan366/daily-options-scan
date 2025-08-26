@@ -14,7 +14,8 @@ tickers = [
     "SOL-CAD",
     "LINK-CAD",
     "ONDO-CAD",
-    "JUP-CAD"
+    "JUP-CAD",
+    "UNI-CAD"
 ]
 
 def fetch_prices(tickers):
@@ -48,6 +49,14 @@ def fetch_prices(tickers):
                 prices.append(round(price, 6))
                 continue
 
+            if ticker == "UNI-CAD":
+                # 用 CoinGecko API 获取 Uniswap (UNI) → CAD
+                url = "https://api.coingecko.com/api/v3/simple/price"
+                params = {"ids": "uniswap", "vs_currencies": "cad"}
+                data = requests.get(url, params=params, timeout=10).json()
+                price = data["uniswap"]["cad"]
+                prices.append(round(price, 2))
+                continue  # 跳过 yfinance
 
             # 其他 ticker 默认走 yfinance
             t = yf.Ticker(ticker)
@@ -71,11 +80,11 @@ def write_prices_to_sheet_split(prices):
 
     SPREADSHEET_ID = '1Rfs87zMtB9hyhkRiW1UGnAuNeLjQEcb_-9yRtLjRATI'
 
-    ranges = ["'ETF'!F14:F15", "'ETF'!F18:F22", "'ETF'!F38:F41"]
+    ranges = ["'ETF'!F14:F15", "'ETF'!F18:F22", "'ETF'!F38:F42"]
     values_list = [
         [[prices[0]], [prices[1]]],
         [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]],
-        [[prices[7]],[prices[8]],[prices[9]],[prices[10]]]
+        [[prices[7]],[prices[8]],[prices[9]],[prices[10]],[prices[11]]]
     ]
 
     for rng, vals in zip(ranges, values_list):
