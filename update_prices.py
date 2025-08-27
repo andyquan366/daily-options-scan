@@ -13,9 +13,9 @@ tickers = [
     "YPLT.NE",
     "SOL-CAD",
     "LINK-CAD",
+    "UNI-CAD",
     "ONDO-CAD",
-    "JUP-CAD",
-    "UNI-CAD"
+    "JUP-CAD"
 ]
 
 def fetch_prices(tickers):
@@ -28,6 +28,15 @@ def fetch_prices(tickers):
                 params = {"ids": "chainlink", "vs_currencies": "cad"}
                 data = requests.get(url, params=params, timeout=10).json()
                 price = data["chainlink"]["cad"]
+                prices.append(round(price, 2))
+                continue  # 跳过 yfinance
+
+            if ticker == "UNI-CAD":
+                # 用 CoinGecko API 获取 Uniswap (UNI) → CAD
+                url = "https://api.coingecko.com/api/v3/simple/price"
+                params = {"ids": "uniswap", "vs_currencies": "cad"}
+                data = requests.get(url, params=params, timeout=10).json()
+                price = data["uniswap"]["cad"]
                 prices.append(round(price, 2))
                 continue  # 跳过 yfinance
 
@@ -49,14 +58,6 @@ def fetch_prices(tickers):
                 prices.append(round(price, 6))
                 continue
 
-            if ticker == "UNI-CAD":
-                # 用 CoinGecko API 获取 Uniswap (UNI) → CAD
-                url = "https://api.coingecko.com/api/v3/simple/price"
-                params = {"ids": "uniswap", "vs_currencies": "cad"}
-                data = requests.get(url, params=params, timeout=10).json()
-                price = data["uniswap"]["cad"]
-                prices.append(round(price, 2))
-                continue  # 跳过 yfinance
 
             # 其他 ticker 默认走 yfinance
             t = yf.Ticker(ticker)
