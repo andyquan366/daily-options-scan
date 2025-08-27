@@ -46,7 +46,7 @@ def fetch_prices(tickers):
                 params = {"ids": "ondo-finance", "vs_currencies": "usd"}
                 data = requests.get(url, params=params, timeout=10).json()
                 price = data["ondo-finance"]["usd"]
-                prices.append(round(price, 2))
+                prices.append(round(price, 6))
                 continue  # 跳过 yfinance
 
             if ticker == "JUP-USD":
