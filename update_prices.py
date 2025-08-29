@@ -37,7 +37,7 @@ def fetch_prices(tickers):
                 url = "https://api.coingecko.com/api/v3/simple/price"
                 params = {"ids": "jupiter-exchange-solana", "vs_currencies": "cad"}
                 data = requests.get(url, params=params, timeout=10).json()
-                price = data["jupi1ter-exchange-solana"]["cad"]
+                price = data["jupiter-exchange-solana"]["cad"]
                 prices.append(round(price, 2))
                 continue
 
