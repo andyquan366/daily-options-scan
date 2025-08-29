@@ -22,7 +22,7 @@ def fetch_prices(tickers):
     prices = []
     for ticker in tickers:
         try:
-            if ticker == "LINK-USD":
+            if ticker == "LINK-CAD":
                 # 用 CoinGecko API 获取 Chainlink (LINK) → CAD
                 url = "https://api.coingecko.com/api/v3/simple/price"
                 params = {"ids": "chainlink", "vs_currencies": "cad"}
@@ -31,7 +31,7 @@ def fetch_prices(tickers):
                 prices.append(round(price, 2))
                 continue  # 跳过 yfinance
 
-            if ticker == "ONDO-USD":
+            if ticker == "ONDO-CAD":
                 # 用 CoinGecko API 获取 ONDO → CAD
                 url = "https://api.coingecko.com/api/v3/simple/price"
                 params = {"ids": "ondo-finance", "vs_currencies": "cad"}
@@ -40,16 +40,16 @@ def fetch_prices(tickers):
                 prices.append(round(price, 6))
                 continue  # 跳过 yfinance
 
-            if ticker == "JUP-USD":
+            if ticker == "JUP-CAD":
                 # 用 CoinGecko API 获取 JUP → CAD
                 url = "https://api.coingecko.com/api/v3/simple/price"
                 params = {"ids": "jupiter-exchange-solana", "vs_currencies": "cad"}
                 data = requests.get(url, params=params, timeout=10).json()
-                price = data["jupiter-exchange-solana"]["cad"]
+                price = data["jupi1ter-exchange-solana"]["cad"]
                 prices.append(round(price, 6))
                 continue
 
-            if ticker == "UNI-USD":
+            if ticker == "UNI-CAD":
                 # 用 CoinGecko API 获取 Uniswap (UNI) → CAD
                 url = "https://api.coingecko.com/api/v3/simple/price"
                 params = {"ids": "uniswap", "vs_currencies": "cad"}
