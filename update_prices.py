@@ -38,7 +38,7 @@ def fetch_prices(tickers):
                 params = {"ids": "jupiter-exchange-solana", "vs_currencies": "cad"}
                 data = requests.get(url, params=params, timeout=10).json()
                 price = data["jupiter-exchange-solana"]["cad"]
-                prices.append(round(price, 2))
+                prices.append(round(price, 6))
                 continue
 
             if ticker == "UNI-CAD":
