@@ -29,7 +29,7 @@ def fetch_prices(tickers):
                 params = {"ids": "ondo-finance", "vs_currencies": "cad"}
                 data = requests.get(url, params=params, timeout=10).json()
                 price = data["ondo-finance"]["cad"]
-                prices.append(round(price, 6))
+                prices.append(round(price, 2))
                 continue  # 跳过 yfinance
 
             if ticker == "JUP-CAD":
@@ -38,7 +38,7 @@ def fetch_prices(tickers):
                 params = {"ids": "jupiter-exchange-solana", "vs_currencies": "cad"}
                 data = requests.get(url, params=params, timeout=10).json()
                 price = data["jupi1ter-exchange-solana"]["cad"]
-                prices.append(round(price, 6))
+                prices.append(round(price, 2))
                 continue
 
             if ticker == "UNI-CAD":
