@@ -22,14 +22,6 @@ def fetch_prices(tickers):
     prices = []
     for ticker in tickers:
         try:
-            if ticker == "LINK-CAD":
-                # 用 CoinGecko API 获取 Chainlink (LINK) → CAD
-                url = "https://api.coingecko.com/api/v3/simple/price"
-                params = {"ids": "chainlink", "vs_currencies": "cad"}
-                data = requests.get(url, params=params, timeout=10).json()
-                price = data["chainlink"]["cad"]
-                prices.append(round(price, 2))
-                continue  # 跳过 yfinance
 
             if ticker == "ONDO-CAD":
                 # 用 CoinGecko API 获取 ONDO → CAD
