@@ -52,8 +52,11 @@ def fetch_prices(tickers):
                     # 每个币不同精度
                     if ticker == "PYTH-CAD":
                         prices.append(round(price, 6))
+                    elif ticker == "JUP-CAD":
+                        prices.append(round(price, 6))
                     elif ticker == "ENA-CAD":
-                        prices.append(round(price, 4))
+                        prices.append(round(price, 6))
+
                     else:
                         prices.append(round(price, 2))
                 else:
