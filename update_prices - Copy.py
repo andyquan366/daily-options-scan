@@ -13,8 +13,10 @@ tickers = [
     "YPLT.NE",
     "SOL-CAD",
     "LINK-CAD",
-    "ONDO-CAD",
     "PYTH-CAD",
+    "ONDO-CAD",
+    "ENA-CAD",
+    "RENDER-CAD",
     "JUP-CAD",
     "UNI-CAD"
 ]
@@ -23,6 +25,14 @@ def fetch_prices(tickers):
     prices = []
     for ticker in tickers:
         try:
+            if ticker == "PYTH-CAD":
+                # 用 CoinGecko API 获取 PYTH → CAD
+                url = "https://api.coingecko.com/api/v3/simple/price"
+                params = {"ids": "pyth-network", "vs_currencies": "cad"}
+                data = requests.get(url, params=params, timeout=10).json()
+                price = data["pyth-network"]["cad"]
+                prices.append(round(price, 6))
+                continue
 
             if ticker == "ONDO-CAD":
                 # 用 CoinGecko API 获取 ONDO → CAD
@@ -31,16 +41,25 @@ def fetch_prices(tickers):
                 data = requests.get(url, params=params, timeout=10).json()
                 price = data["ondo-finance"]["cad"]
                 prices.append(round(price, 2))
-                continue  # 跳过 yfinance
+                continue
 
-            if ticker == "PYTH-CAD":
-                # 用 CoinGecko API 获取 PYTH → CAD
+            if ticker == "ENA-CAD":
+                # 用 CoinGecko API 获取 Ethena (ENA) → CAD
                 url = "https://api.coingecko.com/api/v3/simple/price"
-                params = {"ids": "pyth-network", "vs_currencies": "cad"}
+                params = {"ids": "ethena", "vs_currencies": "cad"}
                 data = requests.get(url, params=params, timeout=10).json()
-                price = data["pyth-network"]["cad"]
-                prices.append(round(price, 6))
-                continue  # 跳过 yfinance
+                price = data["ethena"]["cad"]
+                prices.append(round(price, 4))
+                continue
+
+            if ticker == "RENDER-CAD":
+                # 用 CoinGecko API 获取 Render (RNDR) → CAD
+                url = "https://api.coingecko.com/api/v3/simple/price"
+                params = {"ids": "render-token", "vs_currencies": "cad"}
+                data = requests.get(url, params=params, timeout=10).json()
+                price = data["render-token"]["cad"]
+                prices.append(round(price, 2))
+                continue
 
             if ticker == "JUP-CAD":
                 # 用 CoinGecko API 获取 JUP → CAD
@@ -58,7 +77,7 @@ def fetch_prices(tickers):
                 data = requests.get(url, params=params, timeout=10).json()
                 price = data["uniswap"]["cad"]
                 prices.append(round(price, 2))
-                continue  # 跳过 yfinance
+                continue
 
 
 
@@ -84,11 +103,11 @@ def write_prices_to_sheet_split(prices):
 
     SPREADSHEET_ID = '1Rfs87zMtB9hyhkRiW1UGnAuNeLjQEcb_-9yRtLjRATI'
 
-    ranges = ["'ETF'!F15:F16", "'ETF'!F19:F23", "'ETF'!F39:F44"]
+    ranges = ["'ETF'!F15:F16", "'ETF'!F19:F23", "'ETF'!F39:F46"]
     values_list = [
         [[prices[0]], [prices[1]]],
         [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]],
-        [[prices[7]],[prices[8]],[prices[9]],[prices[10]],[prices[11]],[prices[12]]]
+        [[prices[7]],[prices[8]],[prices[9]],[prices[10]],[prices[11]],[prices[12]],[prices[13]],[prices[14]]]
     ]
 
     for rng, vals in zip(ranges, values_list):
