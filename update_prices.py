@@ -14,8 +14,8 @@ tickers = [
     "SOL-CAD",
     "LINK-CAD",
     "RENDER-CAD",
-    "PYTH-CAD",
     "ONDO-CAD",
+    "PYTH-CAD",
     "ENA-CAD",
     "JUP-CAD",
     "UNI-CAD"
@@ -27,8 +27,8 @@ def fetch_prices(tickers):
     # 先一次性批量获取 6 个 CoinGecko 代币
     coingecko_map = {
         "RENDER-CAD": "render-token",
-        "PYTH-CAD": "pyth-network",
         "ONDO-CAD": "ondo-finance",
+        "PYTH-CAD": "pyth-network",
         "ENA-CAD": "ethena",
         "JUP-CAD": "jupiter-exchange-solana",
         "UNI-CAD": "uniswap"
@@ -52,9 +52,9 @@ def fetch_prices(tickers):
                     # 每个币不同精度
                     if ticker == "PYTH-CAD":
                         prices.append(round(price, 6))
-                    elif ticker == "JUP-CAD":
-                        prices.append(round(price, 6))
                     elif ticker == "ENA-CAD":
+                        prices.append(round(price, 6))
+                    elif ticker == "JUP-CAD":
                         prices.append(round(price, 6))
 
                     else:
