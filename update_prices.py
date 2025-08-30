@@ -79,6 +79,8 @@ def fetch_prices(tickers):
                 prices.append(round(price, 2))
                 continue
 
+
+
             # 其他 ticker 默认走 yfinance
             t = yf.Ticker(ticker)
             data = t.history(period="1d")
