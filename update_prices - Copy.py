@@ -17,8 +17,9 @@ tickers = [
     "ONDO-CAD",
     "ENA-CAD",
     "RENDER-CAD",
-    "JUP-CAD",
-    "UNI-CAD"
+    "JUP-CAD","
+    "UNI-CAD",
+
 ]
 
 def fetch_prices(tickers):
