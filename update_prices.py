@@ -26,10 +26,10 @@ def fetch_prices(tickers):
 
     # 先一次性批量获取 6 个 CoinGecko 代币
     coingecko_map = {
+        "RENDER-CAD": "render-token",
         "PYTH-CAD": "pyth-network",
         "ONDO-CAD": "ondo-finance",
         "ENA-CAD": "ethena",
-        "RENDER-CAD": "render-token",
         "JUP-CAD": "jupiter-exchange-solana",
         "UNI-CAD": "uniswap"
     }
