@@ -1,15 +1,18 @@
-# test_jup_cad.py
-import requests
+import yfinance as yf
 
-def get_jup_cad():
-    """用 CoinGecko simple/price 获取 JUP (Solana Jupiter) → CAD"""
-    url = "https://api.coingecko.com/api/v3/simple/price"
-    params = {"ids": "jupiter-exchange-solana", "vs_currencies": "usd,cad"}
-    data = requests.get(url, params=params, timeout=10).json()
-    print("CoinGecko 返回:", data)
-    usd = data["jupiter-exchange-solana"]["usd"]
-    cad = data["jupiter-exchange-solana"]["cad"]
-    print(f"当前 1 JUP ≈ {usd} USD / {cad} CAD")
+tickers = [
+    "ONDO-CAD",
+    "PYTH-CAD",
+    "JUP-CAD",
+    "UNI-CAD",
+    "ENA-CAD",
+    "RENDER-CAD"
+]
 
-if __name__ == "__main__":
-    get_jup_cad()
+for t in tickers:
+    try:
+        data = yf.Ticker(t)
+        price = data.history(period="1d")["Close"].iloc[-1]
+        print(f"{t}: {price}")
+    except Exception as e:
+        print(f"{t}: 查不到 ({e})")

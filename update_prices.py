@@ -23,6 +23,14 @@ def fetch_prices(tickers):
     prices = []
     for ticker in tickers:
         try:
+            if ticker == "PYTH-CAD":
+                # 用 CoinGecko API 获取 PYTH → CAD
+                url = "https://api.coingecko.com/api/v3/simple/price"
+                params = {"ids": "pyth-network", "vs_currencies": "cad"}
+                data = requests.get(url, params=params, timeout=10).json()
+                price = data["pyth-network"]["cad"]
+                prices.append(round(price, 6))
+                continue
 
             if ticker == "ONDO-CAD":
                 # 用 CoinGecko API 获取 ONDO → CAD
@@ -31,16 +39,25 @@ def fetch_prices(tickers):
                 data = requests.get(url, params=params, timeout=10).json()
                 price = data["ondo-finance"]["cad"]
                 prices.append(round(price, 2))
-                continue  # 跳过 yfinance
+                continue
 
-            if ticker == "PYTH-CAD":
-                # 用 CoinGecko API 获取 PYTH → CAD
+            if ticker == "ENA-CAD":
+                # 用 CoinGecko API 获取 Ethena (ENA) → CAD
                 url = "https://api.coingecko.com/api/v3/simple/price"
-                params = {"ids": "pyth-network", "vs_currencies": "cad"}
+                params = {"ids": "ethena", "vs_currencies": "cad"}
                 data = requests.get(url, params=params, timeout=10).json()
-                price = data["pyth-network"]["cad"]
-                prices.append(round(price, 6))
-                continue  # 跳过 yfinance
+                price = data["ethena"]["cad"]
+                prices.append(round(price, 4))
+                continue
+
+            if ticker == "RENDER-CAD":
+                # 用 CoinGecko API 获取 Render (RNDR) → CAD
+                url = "https://api.coingecko.com/api/v3/simple/price"
+                params = {"ids": "render-token", "vs_currencies": "cad"}
+                data = requests.get(url, params=params, timeout=10).json()
+                price = data["render-token"]["cad"]
+                prices.append(round(price, 2))
+                continue
 
             if ticker == "JUP-CAD":
                 # 用 CoinGecko API 获取 JUP → CAD
@@ -58,9 +75,7 @@ def fetch_prices(tickers):
                 data = requests.get(url, params=params, timeout=10).json()
                 price = data["uniswap"]["cad"]
                 prices.append(round(price, 2))
-                continue  # 跳过 yfinance
-
-
+                continue
 
             # 其他 ticker 默认走 yfinance
             t = yf.Ticker(ticker)
