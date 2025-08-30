@@ -1,18 +1,45 @@
 import requests
 
-def test_uni_price():
+tokens = {
+    "PYTH-CAD": "pyth-network",
+    "ONDO-CAD": "ondo-finance",
+    "ENA-CAD": "ethena",
+    "RENDER-CAD": "render-token",
+    "JUP-CAD": "jupiter-exchange-solana",
+    "UNI-CAD": "uniswap",
+    "SOL-CAD": "solana",
+    "LINK-CAD": "chainlink"
+}
+
+tickers = [
+    "PYTH-CAD",
+    "ONDO-CAD",
+    "ENA-CAD",
+    "RENDER-CAD",
+    "JUP-CAD",
+    "UNI-CAD",
+    "SOL-CAD",
+    "LINK-CAD"
+]
+
+def fetch_batch(tickers):
     url = "https://api.coingecko.com/api/v3/simple/price"
-    params = {"ids": "uniswap", "vs_currencies": "cad"}
-    try:
-        data = requests.get(url, params=params, timeout=10).json()
-        print("返回数据:", data)
-        if "uniswap" in data and "cad" in data["uniswap"]:
-            price = data["uniswap"]["cad"]
-            print(f"UNI-CAD 当前价格: {price}")
-        else:
-            print("UNI-CAD: CoinGecko 没返回价格")
-    except Exception as e:
-        print("请求出错:", e)
+    ids = ",".join([tokens[t] for t in tickers])
+    params = {"ids": ids, "vs_currencies": "cad"}
+    data = requests.get(url, params=params, timeout=10).json()
+    print("返回数据:", data)
+
+    prices = []
+    for t in tickers:
+        coingecko_id = tokens[t]
+        try:
+            prices.append(round(data[coingecko_id]["cad"], 6))
+        except Exception as e:
+            prices.append(None)
+            print(f"{t}: 查不到 ({e})")
+    return prices
 
 if __name__ == "__main__":
-    test_uni_price()
+    results = fetch_batch(tickers)
+    for t, v in zip(tickers, results):
+        print(f"{t}: {v}")
