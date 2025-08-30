@@ -13,10 +13,10 @@ tickers = [
     "YPLT.NE",
     "SOL-CAD",
     "LINK-CAD",
+    "RENDER-CAD",
     "PYTH-CAD",
     "ONDO-CAD",
     "ENA-CAD",
-    "RENDER-CAD",
     "JUP-CAD",
     "UNI-CAD"
 ]
