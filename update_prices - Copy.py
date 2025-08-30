@@ -25,14 +25,6 @@ def fetch_prices(tickers):
     prices = []
     for ticker in tickers:
         try:
-            if ticker == "PYTH-CAD":
-                # 用 CoinGecko API 获取 PYTH → CAD
-                url = "https://api.coingecko.com/api/v3/simple/price"
-                params = {"ids": "pyth-network", "vs_currencies": "cad"}
-                data = requests.get(url, params=params, timeout=10).json()
-                price = data["pyth-network"]["cad"]
-                prices.append(round(price, 6))
-                continue
 
             if ticker == "ONDO-CAD":
                 # 用 CoinGecko API 获取 ONDO → CAD
@@ -41,7 +33,16 @@ def fetch_prices(tickers):
                 data = requests.get(url, params=params, timeout=10).json()
                 price = data["ondo-finance"]["cad"]
                 prices.append(round(price, 2))
-                continue
+                continue  # 跳过 yfinance
+
+            if ticker == "PYTH-CAD":
+                # 用 CoinGecko API 获取 PYTH → CAD
+                url = "https://api.coingecko.com/api/v3/simple/price"
+                params = {"ids": "pyth-network", "vs_currencies": "cad"}
+                data = requests.get(url, params=params, timeout=10).json()
+                price = data["pyth-network"]["cad"]
+                prices.append(round(price, 6))
+                continue  # 跳过 yfinance
 
             if ticker == "ENA-CAD":
                 # 用 CoinGecko API 获取 Ethena (ENA) → CAD
@@ -77,7 +78,7 @@ def fetch_prices(tickers):
                 data = requests.get(url, params=params, timeout=10).json()
                 price = data["uniswap"]["cad"]
                 prices.append(round(price, 2))
-                continue
+                continue  # 跳过 yfinance
 
 
 
@@ -107,7 +108,7 @@ def write_prices_to_sheet_split(prices):
     values_list = [
         [[prices[0]], [prices[1]]],
         [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]],
-        [[prices[7]],[prices[8]],[prices[9]],[prices[10]],[prices[11]],[prices[12]],[prices[13]],[prices[14]]]
+        [[prices[7]], [prices[8]], [prices[9]], [prices[10]], [prices[11]], [prices[12]], [prices[13]], [prices[14]]]
     ]
 
     for rng, vals in zip(ranges, values_list):
