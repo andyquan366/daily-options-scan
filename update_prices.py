@@ -13,9 +13,9 @@ tickers = [
     "YAMD.NE",
     "SOL-CAD",
     "LINK-CAD",
-    "RENDER-CAD",
     "ONDO-CAD",
     "PYTH-CAD",
+    "RENDER-CAD",
     "ENA-CAD",
     "JUP-CAD",
     "UNI-CAD"
@@ -26,9 +26,9 @@ def fetch_prices(tickers):
 
     # 先一次性批量获取 6 个 CoinGecko 代币
     coingecko_map = {
-        "RENDER-CAD": "render-token",
         "ONDO-CAD": "ondo-finance",
         "PYTH-CAD": "pyth-network",
+        "RENDER-CAD": "render-token",
         "ENA-CAD": "ethena",
         "JUP-CAD": "jupiter-exchange-solana",
         "UNI-CAD": "uniswap"
