@@ -14,8 +14,8 @@ tickers = [
     "SOL-CAD",
     "PYTH-CAD",
     "ONDO-CAD",
-    "LINK-CAD",
     "ENA-CAD",
+    "LINK-CAD",
     "RENDER-CAD",
     "JUP-CAD",
     "UNI-CAD"
