@@ -66,9 +66,11 @@ for ticker in tickers:
 
 
         try:
-            expiries = stock.options[:2]  # ✅ 获取最近 4 个到期日
+            expiries = stock.options[:4]  # ✅ 获取最近 4 个到期日
             expiry_this_week = expiries[:1]
             expiry_next_week = expiries[1:2]
+            expiry_3rd_week = expiries[2:3]
+            expiry_4th_week = expiries[3:4]
         except:
             continue  # 某些股票没有 options 字段或格式错误时跳过
 
