@@ -14,9 +14,9 @@ tickers = [
     "SOL-CAD",
     "PYTH-CAD",
     "ONDO-CAD",
-    "UMA-CAD",
     "ENA-CAD",
     "LINK-CAD",
+    "UMA-CAD",
     "RENDER-CAD",
     "JUP-CAD",
     "UNI-CAD"
@@ -29,8 +29,8 @@ def fetch_prices(tickers):
     coingecko_map = {
         "PYTH-CAD": "pyth-network",
         "ONDO-CAD": "ondo-finance",
-        "UMA-CAD": "uma",
         "ENA-CAD": "ethena",
+        "UMA-CAD": "uma",
         "RENDER-CAD": "render-token",
         "JUP-CAD": "jupiter-exchange-solana",
         "UNI-CAD": "uniswap"
