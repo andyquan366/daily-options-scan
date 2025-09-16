@@ -16,10 +16,10 @@ tickers = [
     "ONDO-CAD",
     "ENA-CAD",
     "LINK-CAD",
-    "UMA-CAD",
-    "RENDER-CAD",
     "JUP-CAD",
-    "UNI-CAD"
+    "RENDER-CAD",
+    "UNI-CAD",
+    "UMA-CAD"
 ]
 
 def fetch_prices(tickers):
@@ -30,10 +30,10 @@ def fetch_prices(tickers):
         "PYTH-CAD": "pyth-network",
         "ONDO-CAD": "ondo-finance",
         "ENA-CAD": "ethena",
-        "UMA-CAD": "uma",
-        "RENDER-CAD": "render-token",
         "JUP-CAD": "jupiter-exchange-solana",
-        "UNI-CAD": "uniswap"
+        "RENDER-CAD": "render-token",
+        "UNI-CAD": "uniswap",
+        "UMA-CAD": "uma"
     }
     ids = ",".join(coingecko_map.values())
     url = "https://api.coingecko.com/api/v3/simple/price"
