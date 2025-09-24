@@ -12,6 +12,7 @@ tickers = [
     "YPLT.NE",
     "YAMD.NE",
     "SOL-CAD",
+    "SUI-CAD",
     "PYTH-CAD",
     "ONDO-CAD",
     "ENA-CAD",
@@ -27,6 +28,7 @@ def fetch_prices(tickers):
 
     # 先一次性批量获取 7 个 CoinGecko 代币
     coingecko_map = {
+        "SUI-CAD": "sui",
         "PYTH-CAD": "pyth-network",
         "ONDO-CAD": "ondo-finance",
         "ENA-CAD": "ethena",
@@ -91,7 +93,7 @@ def write_prices_to_sheet_split(prices):
     values_list = [
         [[prices[0]], [prices[1]]],
         [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]],
-        [[prices[7]], [prices[8]], [prices[9]], [prices[10]], [prices[11]], [prices[12]], [prices[13]], [prices[14]], [prices[15]]]
+        [[prices[7]], [prices[8]], [prices[9]], [prices[10]], [prices[11]], [prices[12]], [prices[13]], [prices[14]], [prices[15]], [prices[16]]]
     ]
 
     for rng, vals in zip(ranges, values_list):
