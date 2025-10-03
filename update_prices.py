@@ -13,6 +13,7 @@ tickers = [
     "YAMD.NE",
     "SOL-CAD",
     "ONDO-CAD",
+    "CELO-CAD",
     "SUI-CAD",
     "LINK-CAD",
     "PYTH-CAD",
@@ -31,6 +32,7 @@ def fetch_prices(tickers):
         "SUI-CAD": "sui",
         "PYTH-CAD": "pyth-network",
         "ONDO-CAD": "ondo-finance",
+        "CELO-CAD": "celo",
         "ENA-CAD": "ethena",
         "JUP-CAD": "jupiter-exchange-solana",
         "RENDER-CAD": "render-token",
@@ -54,7 +56,9 @@ def fetch_prices(tickers):
                 price = cg_data.get(coin_id, {}).get("cad")
                 if price is not None:
                     # 每个币不同精度
-                    if ticker == "PYTH-CAD":
+                    if ticker == "CELO-CAD":
+                        prices.append(round(price, 6))
+                    elif ticker == "PYTH-CAD":
                         prices.append(round(price, 6))
                     elif ticker == "ENA-CAD":
                         prices.append(round(price, 6))
@@ -89,11 +93,11 @@ def write_prices_to_sheet_split(prices):
 
     SPREADSHEET_ID = '1Rfs87zMtB9hyhkRiW1UGnAuNeLjQEcb_-9yRtLjRATI'
 
-    ranges = ["'ETF'!E19:E20", "'ETF'!E23:E27", "'ETF'!E43:E52"]
+    ranges = ["'ETF'!E19:E20", "'ETF'!E23:E27", "'ETF'!E43:E53"]
     values_list = [
         [[prices[0]], [prices[1]]],
         [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]],
-        [[prices[7]], [prices[8]], [prices[9]], [prices[10]], [prices[11]], [prices[12]], [prices[13]], [prices[14]], [prices[15]], [prices[16]]]
+        [[prices[7]], [prices[8]], [prices[9]], [prices[10]], [prices[11]], [prices[12]], [prices[13]], [prices[14]], [prices[15]], [prices[16]], [prices[17]]]
     ]
 
     for rng, vals in zip(ranges, values_list):
