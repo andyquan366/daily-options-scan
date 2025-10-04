@@ -32,7 +32,7 @@ def fetch_prices(tickers):
     coingecko_map = {
         "ONDO-CAD": "ondo-finance",
         "ORDER-CAD": "orderly-network",
-        "PEAQ-CAD": "peaq",
+        "PEAQ-CAD": "peaq-2",
         "SUI-CAD": "sui",
         "PYTH-CAD": "pyth-network",
         "ENA-CAD": "ethena",
