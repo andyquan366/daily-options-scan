@@ -58,7 +58,9 @@ def fetch_prices(tickers):
                 price = cg_data.get(coin_id, {}).get("cad")
                 if price is not None:
                     # 每个币不同精度
-                    if ticker == "CELO-CAD":
+                    if ticker == "ORDER-CAD":
+                        prices.append(round(price, 6))
+                    elif ticker == "PEAQ-CAD":
                         prices.append(round(price, 6))
                     elif ticker == "PYTH-CAD":
                         prices.append(round(price, 6))
