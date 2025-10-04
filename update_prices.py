@@ -3,6 +3,28 @@ import requests
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
+tickers = [
+    "HBTE.NE",
+    "HBIX.NE",
+    "YTSL.NE",
+    "YNVD.NE",
+    "YCON.NE",
+    "YPLT.NE",
+    "YAMD.NE",
+    "SOL-CAD",
+    "ONDO-CAD",
+    "ORDER-USD",
+    "PEAQ-USD",
+    "SUI-CAD",
+    "LINK-CAD",
+    "PYTH-CAD",
+    "ENA-CAD",
+    "JUP-CAD",
+    "RENDER-CAD",
+    "UNI-CAD",
+    "UMA-CAD"
+]
+
 def fetch_prices(tickers):
     prices = []
 
