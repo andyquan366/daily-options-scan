@@ -3,84 +3,47 @@ import requests
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
-tickers = [
-    "HBTE.NE",
-    "HBIX.NE",
-    "YTSL.NE",
-    "YNVD.NE",
-    "YCON.NE",
-    "YPLT.NE",
-    "YAMD.NE",
-    "SOL-CAD",
-    "ONDO-CAD",
-    "ORDER-CAD",
-    "PEAQ-CAD",
-    "SUI-CAD",
-    "LINK-CAD",
-    "PYTH-CAD",
-    "ENA-CAD",
-    "JUP-CAD",
-    "RENDER-CAD",
-    "UNI-CAD",
-    "UMA-CAD"
-]
-
 def fetch_prices(tickers):
     prices = []
 
-    # 先一次性批量获取 10 个 CoinGecko 代币
+    # CoinGecko 对应关系（区分 USD / CAD）
     coingecko_map = {
-        "ONDO-CAD": "ondo-finance",
-        "ORDER-CAD": "orderly-network",
-        "PEAQ-CAD": "peaq-2",
-        "SUI-CAD": "sui",
-        "PYTH-CAD": "pyth-network",
-        "ENA-CAD": "ethena",
-        "JUP-CAD": "jupiter-exchange-solana",
-        "RENDER-CAD": "render-token",
-        "UNI-CAD": "uniswap",
-        "UMA-CAD": "uma"
+        "ONDO-CAD": ("ondo-finance", "cad"),
+        "ORDER-USD": ("orderly-network", "usd"),
+        "PEAQ-USD": ("peaq-2", "usd"),
+        "SUI-CAD": ("sui", "cad"),
+        "PYTH-CAD": ("pyth-network", "cad"),
+        "ENA-CAD": ("ethena", "cad"),
+        "JUP-CAD": ("jupiter-exchange-solana", "cad"),
+        "RENDER-CAD": ("render-token", "cad"),
+        "UNI-CAD": ("uniswap", "cad"),
+        "UMA-CAD": ("uma", "cad")
     }
-    ids = ",".join(coingecko_map.values())
-    url = "https://api.coingecko.com/api/v3/simple/price"
-    params = {"ids": ids, "vs_currencies": "cad"}
-    try:
-        cg_data = requests.get(url, params=params, timeout=10).json()
-    except Exception as e:
-        print("批量获取 CoinGecko 出错:", e)
-        cg_data = {}
 
-    # 遍历 tickers，按顺序塞进 prices
     for ticker in tickers:
         try:
             if ticker in coingecko_map:
-                coin_id = coingecko_map[ticker]
-                price = cg_data.get(coin_id, {}).get("cad")
-                if price is not None:
-                    # 每个币不同精度
-                    if ticker == "ORDER-CAD":
-                        prices.append(round(price, 6))
-                    elif ticker == "PEAQ-CAD":
-                        prices.append(round(price, 6))
-                    elif ticker == "PYTH-CAD":
-                        prices.append(round(price, 6))
-                    elif ticker == "ENA-CAD":
-                        prices.append(round(price, 6))
-                    elif ticker == "JUP-CAD":
-                        prices.append(round(price, 6))
+                coin_id, currency = coingecko_map[ticker]
+                url = "https://api.coingecko.com/api/v3/simple/price"
+                params = {"ids": coin_id, "vs_currencies": currency}
+                data = requests.get(url, params=params, timeout=10).json()
+                price = data.get(coin_id, {}).get(currency)
 
+                if price is not None:
+                    # 精度统一控制
+                    if ticker in ["ORDER-USD", "PEAQ-USD", "PYTH-CAD", "ENA-CAD", "JUP-CAD"]:
+                        prices.append(round(price, 6))
                     else:
                         prices.append(round(price, 2))
                 else:
                     print(f"{ticker}: CoinGecko 没返回数据")
                     prices.append(None)
-                continue  # 跳过 yfinance
+                continue
 
-            # 其他 ticker 默认走 yfinance
+            # 其他 ticker 用 yfinance
             t = yf.Ticker(ticker)
             data = t.history(period="1d")
-            price = data['Close'].iloc[-1]
-            prices.append(round(price, 2))
+            prices.append(round(data["Close"].iloc[-1], 2))
 
         except Exception as e:
             print(f"Error fetching {ticker}: {e}")
