@@ -31,7 +31,7 @@ def fetch_prices(tickers):
     # 先一次性批量获取 10 个 CoinGecko 代币
     coingecko_map = {
         "ONDO-CAD": "ondo-finance",
-        "ORDER-CAD": "order-network",
+        "ORDER-CAD": "orderly-network",
         "PEAQ-CAD": "peaq-network",
         "SUI-CAD": "sui",
         "PYTH-CAD": "pyth-network",
