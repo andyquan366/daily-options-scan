@@ -1,4 +1,5 @@
 import yfinance as yf
+import time
 import requests
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
@@ -49,6 +50,7 @@ def fetch_prices(tickers):
                 url = "https://api.coingecko.com/api/v3/simple/price"
                 params = {"ids": coin_id, "vs_currencies": currency}
                 data = requests.get(url, params=params, timeout=10).json()
+                time.sleep(1)  # ✅ 新增这一行，避免被 CoinGecko 限流
                 price = data.get(coin_id, {}).get(currency)
 
                 if price is not None:
