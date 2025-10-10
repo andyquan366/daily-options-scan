@@ -49,7 +49,7 @@ def fetch_prices(tickers):
 
                 if price is not None:
                     # 精度统一控制
-                    if ticker in ["ORDER-USD", "PEAQ-USD", "PYTH-CAD", "ENA-CAD", "JUP-CAD"]:
+                    if ticker in ["PYTH-CAD", "ENA-CAD", "JUP-CAD"]:
                         prices.append(round(price, 6))
                     else:
                         prices.append(round(price, 2))
