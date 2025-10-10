@@ -13,8 +13,6 @@ tickers = [
     "YAMD.NE",
     "SOL-CAD",
     "ONDO-CAD",
-    "ORDER-USD",
-    "PEAQ-USD",
     "SUI-CAD",
     "LINK-CAD",
     "PYTH-CAD",
@@ -31,8 +29,6 @@ def fetch_prices(tickers):
     # CoinGecko 对应关系（区分 USD / CAD）
     coingecko_map = {
         "ONDO-CAD": ("ondo-finance", "cad"),
-        "ORDER-USD": ("orderly-network", "usd"),
-        "PEAQ-USD": ("peaq-2", "usd"),
         "SUI-CAD": ("sui", "cad"),
         "PYTH-CAD": ("pyth-network", "cad"),
         "ENA-CAD": ("ethena", "cad"),
@@ -82,11 +78,11 @@ def write_prices_to_sheet_split(prices):
 
     SPREADSHEET_ID = '1Rfs87zMtB9hyhkRiW1UGnAuNeLjQEcb_-9yRtLjRATI'
 
-    ranges = ["'ETF'!E19:E20", "'ETF'!E23:E27", "'ETF'!E43:E54"]
+    ranges = ["'ETF'!E19:E20", "'ETF'!E23:E27", "'ETF'!E43:E52"]
     values_list = [
         [[prices[0]], [prices[1]]],
         [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]],
-        [[prices[7]], [prices[8]], [prices[9]], [prices[10]], [prices[11]], [prices[12]], [prices[13]], [prices[14]], [prices[15]], [prices[16]], [prices[17]], [prices[18]]]
+        [[prices[7]], [prices[8]], [prices[9]], [prices[10]], [prices[11]], [prices[12]], [prices[13]], [prices[14]], [prices[15]], [prices[16]]]
     ]
 
     for rng, vals in zip(ranges, values_list):
