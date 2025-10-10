@@ -14,16 +14,11 @@ tickers = [
     "YAMD.NE",
     "SOL-CAD",
     "ONDO-CAD",
-    "ORDER-USD",
-    "PEAQ-USD",
     "SUI-CAD",
     "LINK-CAD",
     "PYTH-CAD",
     "ENA-CAD",
-    "JUP-CAD",
-    "RENDER-CAD",
-    "UNI-CAD",
-    "UMA-CAD"
+    "JUP-CAD"
 ]
 
 def fetch_prices(tickers):
@@ -32,15 +27,10 @@ def fetch_prices(tickers):
     # CoinGecko 对应关系（区分 USD / CAD）
     coingecko_map = {
         "ONDO-CAD": ("ondo-finance", "cad"),
-        "ORDER-USD": ("orderly-network", "usd"),
-        "PEAQ-USD": ("peaq-2", "usd"),
         "SUI-CAD": ("sui", "cad"),
         "PYTH-CAD": ("pyth-network", "cad"),
         "ENA-CAD": ("ethena", "cad"),
-        "JUP-CAD": ("jupiter-exchange-solana", "cad"),
-        "RENDER-CAD": ("render-token", "cad"),
-        "UNI-CAD": ("uniswap", "cad"),
-        "UMA-CAD": ("uma", "cad")
+        "JUP-CAD": ("jupiter-exchange-solana", "cad")
     }
 
     for ticker in tickers:
