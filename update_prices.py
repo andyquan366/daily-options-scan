@@ -66,8 +66,12 @@ def fetch_prices(tickers):
     return prices
 
 def write_prices_to_sheet_split(prices):
+    import math
+    from google.oauth2.service_account import Credentials
+    from googleapiclient.discovery import build
+
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-    SERVICE_ACCOUNT_FILE = 'credentials.json'  # 这里用workflow的凭证文件名
+    SERVICE_ACCOUNT_FILE = 'credentials.json'
 
     creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     service = build('sheets', 'v4', credentials=creds)
@@ -82,11 +86,18 @@ def write_prices_to_sheet_split(prices):
     ]
 
     for rng, vals in zip(ranges, values_list):
-        body = {'values': vals}
+        # ✅ 清理 None / NaN
+        clean_vals = [["" if (v is None or (isinstance(v, float) and math.isnan(v))) else v for v in row] for row in vals]
+
+        body = {'values': clean_vals}
         result = service.spreadsheets().values().update(
-            spreadsheetId=SPREADSHEET_ID, range=rng,
-            valueInputOption='RAW', body=body).execute()
+            spreadsheetId=SPREADSHEET_ID,
+            range=rng,
+            valueInputOption='RAW',
+            body=body
+        ).execute()
         print(f"{result.get('updatedCells')} cells updated in {rng}.")
+
 
 if __name__ == "__main__":
     prices = fetch_prices(tickers)
