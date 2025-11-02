@@ -5,8 +5,8 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
 tickers = [
-    "HBTE.NE",
     "HBIX.NE",
+    "HBTE.NE",
     "YTSL.NE",
     "YNVD.NE",
     "YCON.NE",
@@ -78,7 +78,7 @@ def write_prices_to_sheet_split(prices):
 
     SPREADSHEET_ID = '1Rfs87zMtB9hyhkRiW1UGnAuNeLjQEcb_-9yRtLjRATI'
 
-    ranges = ["'ETF'!E16:E17", "'ETF'!E37:E41", "'ETF'!E57:E63"]
+    ranges = ["'ETF'!E16:E17", "'ETF'!E38:E42", "'ETF'!E58:E64"]
     values_list = [
         [[prices[0]], [prices[1]]],
         [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]],
