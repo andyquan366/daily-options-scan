@@ -7,9 +7,9 @@ from googleapiclient.discovery import build
 tickers = [
     "HBIX.NE",
     "HBTE.NE",
+    "YCON.NE",
     "YTSL.NE",
     "YNVD.NE",
-    "YCON.NE",
     "YPLT.NE",
     "YAMD.NE",
     "SOL-CAD",
