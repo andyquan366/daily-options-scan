@@ -31,20 +31,45 @@ if "GITHUB_ACTIONS" in os.environ:
 
 print('📅 获取股票列表...')
 
-# === 标普500
-url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-headers = {"User-Agent": "Mozilla/5.0"}
-html = requests.get(url, headers=headers).text
-sp500 = pd.read_html(html)[0]
-sp500_tickers = [t.replace('.', '-') for t in sp500['Symbol']]
-sp500_names = dict(zip(sp500['Symbol'].str.replace('.', '-'), sp500['Security']))
+# === 标普500 ===
+url_sp500 = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+html_sp500 = requests.get(url_sp500, headers=headers).text
+sp500_tables = pd.read_html(html_sp500)
+sp500 = sp500_tables[0]
 
-# === 纳指100
+# 自动找包含 symbol/ticker 的列名
+def find_symbol_column(df):
+    for c in df.columns:
+        if 'symbol' in c.lower() or 'ticker' in c.lower():
+            return c
+    raise KeyError(f"找不到 Symbol 或 Ticker 列，实际列名为: {list(df.columns)}")
+
+sp500_symbol_col = find_symbol_column(sp500)
+sp500_name_col = next((c for c in sp500.columns if 'security' in c.lower() or 'company' in c.lower()), None)
+
+sp500_tickers = [t.replace('.', '-') for t in sp500[sp500_symbol_col].astype(str)]
+sp500_names = dict(zip(sp500[sp500_symbol_col].astype(str).str.replace('.', '-'), sp500[sp500_name_col]))
+
+
+# === 纳指100（自动识别正确表格） ===
 url_nasdaq = "https://en.wikipedia.org/wiki/Nasdaq-100"
 html_nasdaq = requests.get(url_nasdaq, headers=headers).text
-nasdaq100 = pd.read_html(html_nasdaq)[4]
-nasdaq100_tickers = [t.replace('.', '-') for t in nasdaq100['Ticker']]
-nasdaq100_names = dict(zip(nasdaq100['Ticker'].str.replace('.', '-'), nasdaq100['Company']))
+nasdaq_tables = pd.read_html(html_nasdaq)
+
+nasdaq100 = None
+for df in nasdaq_tables:
+    if any("ticker" in str(c).lower() or "symbol" in str(c).lower() for c in df.columns):
+        nasdaq100 = df
+        break
+if nasdaq100 is None:
+    raise ValueError(f"❌ 无法在 Nasdaq 页面中找到包含 ticker/symbol 的表格，实际表格数: {len(nasdaq_tables)}")
+
+nasdaq_symbol_col = find_symbol_column(nasdaq100)
+nasdaq_name_col = next((c for c in nasdaq100.columns if 'company' in c.lower()), None)
+
+nasdaq100_tickers = [t.replace('.', '-') for t in nasdaq100[nasdaq_symbol_col].astype(str)]
+nasdaq100_names = dict(zip(nasdaq100[nasdaq_symbol_col].astype(str).str.replace('.', '-'), nasdaq100[nasdaq_name_col]))
+
 
 
 # === 纳斯达克全市场
