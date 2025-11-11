@@ -35,17 +35,37 @@ html_nasdaq = requests.get(url_nasdaq, headers=headers).text
 nasdaq = pd.read_html(html_nasdaq)[4]
 
 # === 合并
-tickers = list(set(sp500['Symbol'].tolist() + nasdaq['Ticker'].tolist()))
+# === 自动识别列名 ===
+def find_symbol_column(df):
+    for c in df.columns:
+        if 'symbol' in c.lower() or 'ticker' in c.lower():
+            return c
+    raise KeyError(f"找不到Symbol或Ticker列，实际列名: {list(df.columns)}")
+
+sp500_symbol_col = find_symbol_column(sp500)
+nasdaq_symbol_col = find_symbol_column(nasdaq)
+
+tickers = list(set(sp500[sp500_symbol_col].astype(str).tolist() + nasdaq[nasdaq_symbol_col].astype(str).tolist()))
 tickers = [t.replace('.', '-') for t in tickers]
 
+# === 构建名称映射 ===
 ticker_name_map = {}
 for i in range(len(sp500)):
-    symbol = sp500.loc[i, 'Symbol'].replace('.', '-')
-    ticker_name_map[symbol] = sp500.loc[i, 'Security']
+    try:
+        symbol = str(sp500.loc[i, sp500_symbol_col]).replace('.', '-')
+        name_col = next((c for c in sp500.columns if 'security' in c.lower() or 'company' in c.lower()), None)
+        ticker_name_map[symbol] = sp500.loc[i, name_col] if name_col else ''
+    except Exception:
+        continue
+
 for i in range(len(nasdaq)):
-    symbol = nasdaq.loc[i, 'Ticker'].replace('.', '-')
-    if symbol not in ticker_name_map:
-        ticker_name_map[symbol] = nasdaq.loc[i, 'Company']
+    try:
+        symbol = str(nasdaq.loc[i, nasdaq_symbol_col]).replace('.', '-')
+        if symbol not in ticker_name_map:
+            name_col = next((c for c in nasdaq.columns if 'company' in c.lower()), None)
+            ticker_name_map[symbol] = nasdaq.loc[i, name_col] if name_col else ''
+    except Exception:
+        continue
 
 # ==== 抓取每只股票14天内所有期权，累计总成交量 ====
 option_records = []
