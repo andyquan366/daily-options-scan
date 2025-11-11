@@ -36,14 +36,27 @@ url_sp500 = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 headers = {"User-Agent": "Mozilla/5.0"} 
 html_sp500 = requests.get(url_sp500, headers=headers).text
 sp500_tables = pd.read_html(html_sp500)
-sp500 = sp500_tables[0]
+
+# ✅ 自动选择正确的表格（包含 Symbol / Ticker）
+sp500 = None
+for df in sp500_tables:
+    if any("symbol" in str(c).lower() or "ticker" in str(c).lower() for c in df.columns):
+        sp500 = df
+        break
+if sp500 is None:
+    raise ValueError(f"❌ 未在 S&P500 页面中找到包含 symbol/ticker 的表格，实际表格数: {len(sp500_tables)}")
+
+print("📊 S&P500 columns:", list(sp500.columns))  # 可选：调试输出列名
+
 
 # 自动找包含 symbol/ticker 的列名
 def find_symbol_column(df):
     for c in df.columns:
-        if 'symbol' in c.lower() or 'ticker' in c.lower():
+        c_str = str(c).lower()  # ✅ 保证即使是 int 也能转成字符串
+        if 'symbol' in c_str or 'ticker' in c_str:
             return c
     raise KeyError(f"找不到 Symbol 或 Ticker 列，实际列名为: {list(df.columns)}")
+
 
 sp500_symbol_col = find_symbol_column(sp500)
 sp500_name_col = next((c for c in sp500.columns if 'security' in c.lower() or 'company' in c.lower()), None)
@@ -116,7 +129,8 @@ def batch_download(tickers, batch_size=500, **kwargs):
     df_all = pd.concat(all_df, axis=1)
     return df_all
 
-price_df = batch_download(tickers, batch_size=500, period="7d", group_by="ticker")
+price_df = batch_download(tickers, batch_size=200, period="7d", group_by="ticker")
+
 
 
 # 模块顶层定义，循环外
