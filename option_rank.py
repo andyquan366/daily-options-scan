@@ -29,10 +29,20 @@ headers = {"User-Agent": "Mozilla/5.0"}
 html_sp500 = requests.get(url_sp500, headers=headers).text
 sp500 = pd.read_html(html_sp500)[0]
 
-# === 纳指100
+# === 纳指100（自动识别正确表格）
 url_nasdaq = "https://en.wikipedia.org/wiki/Nasdaq-100"
 html_nasdaq = requests.get(url_nasdaq, headers=headers).text
-nasdaq = pd.read_html(html_nasdaq)[4]
+nasdaq_tables = pd.read_html(html_nasdaq)
+
+# 找到包含“TICKER”或“COMPANY”列的表
+nasdaq = None
+for df in nasdaq_tables:
+    if any("ticker" in str(c).lower() or "symbol" in str(c).lower() for c in df.columns):
+        nasdaq = df
+        break
+if nasdaq is None:
+    raise ValueError(f"❌ 无法在 Nasdaq 页面中找到包含 ticker/symbol 的表格，实际表格数: {len(nasdaq_tables)}")
+
 
 # === 合并
 # === 自动识别列名 ===
