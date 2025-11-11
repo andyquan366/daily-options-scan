@@ -23,11 +23,21 @@ if "GITHUB_ACTIONS" in os.environ:
     os.system('rclone copy "gdrive:/Investing/Daily top options/option_rank.xlsx" ./ --drive-chunk-size 64M --progress --ignore-times')
 
 # ==== 股票列表 ====
-# === 标普500
+# === 标普500 ===
 url_sp500 = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 headers = {"User-Agent": "Mozilla/5.0"}
 html_sp500 = requests.get(url_sp500, headers=headers).text
-sp500 = pd.read_html(html_sp500)[0]
+sp500_tables = pd.read_html(html_sp500)
+
+# 自动找到包含 Symbol / Ticker 的表
+sp500 = None
+for df in sp500_tables:
+    if any("symbol" in str(c).lower() or "ticker" in str(c).lower() for c in df.columns):
+        sp500 = df
+        break
+if sp500 is None:
+    raise ValueError(f"❌ 未在 S&P500 页面找到包含 symbol/ticker 的表格，实际表格数: {len(sp500_tables)}")
+
 
 # === 纳指100（自动识别正确表格）
 url_nasdaq = "https://en.wikipedia.org/wiki/Nasdaq-100"
