@@ -33,6 +33,7 @@ print('📅 获取股票列表...')
 
 # === 标普500 ===
 url_sp500 = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+headers = {"User-Agent": "Mozilla/5.0"} 
 html_sp500 = requests.get(url_sp500, headers=headers).text
 sp500_tables = pd.read_html(html_sp500)
 sp500 = sp500_tables[0]
