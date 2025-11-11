@@ -48,9 +48,11 @@ if nasdaq is None:
 # === 自动识别列名 ===
 def find_symbol_column(df):
     for c in df.columns:
-        if 'symbol' in c.lower() or 'ticker' in c.lower():
+        c_str = str(c).lower()
+        if 'symbol' in c_str or 'ticker' in c_str:
             return c
-    raise KeyError(f"找不到Symbol或Ticker列，实际列名: {list(df.columns)}")
+    raise KeyError(f"找不到 Symbol 或 Ticker 列，实际列名: {list(df.columns)}")
+
 
 sp500_symbol_col = find_symbol_column(sp500)
 nasdaq_symbol_col = find_symbol_column(nasdaq)
