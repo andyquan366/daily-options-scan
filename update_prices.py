@@ -12,7 +12,7 @@ tickers = [
     "YNVD.NE",
     "YPLT.NE",
     "YAMD.NE",
-    "HHIS.U.NE",
+    "HHIS-U.TO",
     "ONDO-CAD",
     "SUI-CAD",
     "LINK-CAD",
