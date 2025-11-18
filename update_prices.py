@@ -12,6 +12,7 @@ tickers = [
     "YNVD.NE",
     "YPLT.NE",
     "YAMD.NE",
+    "HHIS.U.NE",
     "SOL-CAD",
     "ONDO-CAD",
     "SUI-CAD",
@@ -78,11 +79,12 @@ def write_prices_to_sheet_split(prices):
 
     SPREADSHEET_ID = '1Rfs87zMtB9hyhkRiW1UGnAuNeLjQEcb_-9yRtLjRATI'
 
-    ranges = ["'ETF'!E16:E17", "'ETF'!E34:E38", "'ETF'!E54:E60"]
+    ranges = ["'ETF'!E16:E17", "'ETF'!E34:E38", "'ETF'!E49", "'ETF'!E54:E60"]
     values_list = [
         [[prices[0]], [prices[1]]],
         [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]],
-        [[prices[7]], [prices[8]], [prices[9]], [prices[10]], [prices[11]], [prices[12]], [prices[13]]]
+        [[prices[7]]],
+        [[prices[8]], [prices[9]], [prices[10]], [prices[11]], [prices[12]], [prices[13]], [prices[14]]]
     ]
 
     for rng, vals in zip(ranges, values_list):
