@@ -4,8 +4,6 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 import yfinance as yf
 import pandas as pd
 import os
-# 导入 ExcelWriter 依赖
-import pandas.io.excel
 
 # 关闭缓存，强制拉最新数据
 os.environ["YFINANCE_NO_CACHE"] = "1"
@@ -23,9 +21,8 @@ except:
 def load_price(ticker):
     df = yf.download(
         ticker,
-        # 修正：起始日期改为 2010-01-01
-        start="2010-01-01", 
-        end=None, # 结束日期保持为今天
+        start="2020-01-01",
+        end=None,
         interval="1d",
         auto_adjust=False,
         progress=False,
@@ -42,7 +39,6 @@ def load_price(ticker):
         raise ValueError(f"{ticker} 数据列太少: {df.columns}")
 
     # 强制按列顺序取 High / Low
-    # 确保使用当日最高点和最低点
     df["HIGH"] = df.iloc[:, 1].astype(float)
     df["LOW"]  = df.iloc[:, 2].astype(float)
     
@@ -50,7 +46,7 @@ def load_price(ticker):
 
 
 spy = load_price("SPY")
-qqq = load_price("QQQ") 
+qqq = load_price("QQQ")
 
 print("SPY 数据日期范围:", spy.index.min(), "~", spy.index.max())
 print("QQQ 数据日期范围:", qqq.index.min(), "~", qqq.index.max())
@@ -58,7 +54,7 @@ print("="*80)
 
 
 # ============================================================
-# ★★ 事件式回撤（最终稳定版本，修正天数计算逻辑）★★
+# ★★ 事件式回撤（修正天数计算逻辑）★★
 # ============================================================
 def detect_events(df, threshold, name):
 
@@ -75,26 +71,30 @@ def detect_events(df, threshold, name):
     event_low_date = None
     event_low_price = None
     
+    # 【修正 1：引入周期峰值】用于消除重复事件 (493天问题)
     current_cycle_peak_date = df_index[0]
 
     for i, date in enumerate(df_index):
         cur_low  = float(low.loc[date])
         cur_high = float(high.loc[date])
         
-        # 追踪当前周期峰值
+        # 追踪当前周期峰值：只有创出新高，才更新当前周期的峰值日期
         if cur_high >= float(high.loc[current_cycle_peak_date]):
             current_cycle_peak_date = date
 
         # ------------------- 触发回撤 -------------------
+        # 触发条件：不在回撤中 AND (当前最低价 / 当前周期峰值 - 1) <= -threshold
         current_peak_price = float(high.loc[current_cycle_peak_date])
         cur_dd = cur_low / current_peak_price - 1
         
         if not in_dd and cur_dd <= -threshold:
             in_dd = True
             
+            # 锁定事件的峰值信息
             event_peak_date = current_cycle_peak_date
             event_peak_price = current_peak_price
             
+            # 记录初始低点
             event_low_date = date
             event_low_price = cur_low
 
@@ -104,21 +104,29 @@ def detect_events(df, threshold, name):
             event_low_date = date
                 
         # ------------------- 回撤结束 -------------------
+        # 结束条件：正在回撤中 AND (当前最低价 / 事件峰值 > -threshold)
         if in_dd:
+            # 使用事件峰值计算 DD
             dd_vs_event_peak = cur_low / event_peak_price - 1
             
             if dd_vs_event_peak > -threshold:
                 
+                # 【修正 2：使用索引确定前一个交易日】修正 End Date 错误
                 if i > 0:
                     end_date = df_index[i - 1]
                 else:
+                    # 避免在第一天就结束的情况（虽然不可能触发）
                     end_date = event_peak_date 
 
                 max_dd = event_low_price / event_peak_price - 1
                 
                 # ★★★ 修正天数指标计算逻辑 ★★★
+                # 1. 总持续天数 (Peak 到 End)
                 days_total = df.loc[event_peak_date:end_date].shape[0]
+                # 2. 回撤到谷底天数 (Peak 到 Bottom, 包含两端)
                 days_to_bottom = df.loc[event_peak_date:event_low_date].shape[0]
+                # 3. 回弹天数 (新逻辑: 总天数 - 回撤天数 = 谷底后到结束的天数)
+                #    让 DaysToBottom 包含谷底日，DaysToRecovery 包含谷底后的所有天数。
                 days_to_recovery = days_total - days_to_bottom
                 # ***********************************
 
@@ -136,9 +144,12 @@ def detect_events(df, threshold, name):
 
                 in_dd = False
                 
+                # 【修正 1 补充】回撤结束后，将周期峰值标记为当前日期，
+                # 阻止在没有新高的情况下再次触发旧峰值的事件。
                 current_cycle_peak_date = date
 
     # ------------------- 尾部事件 -------------------
+    # 【修正 3：修复尾部逻辑】只有当 in_dd 为 True (事件在结束时仍在进行中)才记录
     if in_dd: 
         end_date = df_index[-1]
         max_dd = event_low_price / event_peak_price - 1
@@ -146,6 +157,7 @@ def detect_events(df, threshold, name):
         # ★★★ 修正天数指标计算（尾部）★★★
         days_total = df.loc[event_peak_date:end_date].shape[0]
         days_to_bottom = df.loc[event_peak_date:event_low_date].shape[0]
+        # 尾部事件尚未结束，同理：回弹天数 = 总天数 - 回撤天数
         days_to_recovery = days_total - days_to_bottom
         # ***********************************
 
@@ -161,52 +173,20 @@ def detect_events(df, threshold, name):
             "DaysToRecovery": days_to_recovery,
         })
 
-    print(f"\n{name} 回撤事件（最终稳定版本）")
-    df_events = pd.DataFrame()
+    print(f"\n{name} 回撤事件（修正天数计算逻辑）")
     if events:
         df_events = pd.DataFrame(events)
+        # 调整列顺序，让天数指标更靠近 MaxDD
         cols = ["Start", "End", "Bottom", "DaysTotal", "DaysToBottom", "DaysToRecovery", "PeakHigh", "BottomLow", "MaxDD"]
         df_events = df_events[cols]
         print(df_events.to_string(index=False))
     else:
         print("(No events)")
     print("="*80)
-    
-    # 返回 DataFrame 供 Excel 导出使用
-    return df_events
 
 
 # ============================================================
-# 执行 (SPY阈值 0.05, QQQ阈值 0.08)
+# 执行
 # ============================================================
-spy_events_df = detect_events(spy, 0.05, "SPY -5%")
-qqq_events_df = detect_events(qqq, 0.08, "QQQ -8%")
-
-
-# ============================================================
-# ★★★★ 导出到 Excel ★★★★
-# ------------------------------------------------------------
-# 修正：将引擎改为 'openpyxl' 以避免 'xlsxwriter' 依赖错误
-# ------------------------------------------------------------
-EXCEL_FILE = "Drawdown_Events_2010_to_Today.xlsx"
-
-# 仅当至少有一个 DataFrame 不为空时才创建 Excel 文件
-if not spy_events_df.empty or not qqq_events_df.empty:
-    try:
-        # 尝试使用 openpyxl 引擎
-        with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl') as writer:
-            if not spy_events_df.empty:
-                spy_events_df.to_excel(writer, sheet_name='SPY_DD_Events', index=False)
-            if not qqq_events_df.empty:
-                qqq_events_df.to_excel(writer, sheet_name='QQQ_DD_Events', index=False)
-        
-        print(f"\n★★★★ 结果已成功导出到 Excel 文件：{EXCEL_FILE} ★★★★")
-        print("（文件位于程序运行的同目录下）")
-
-    except Exception as e:
-        print(f"\n!!!! 导出 Excel 时发生错误: {e}")
-        # 如果 openpyxl 仍然报错，明确告知用户安装
-        print("!!!! 导出失败。请在命令行中运行以下命令安装所需的 Excel 库：")
-        print("!!!! pip install openpyxl")
-else:
-    print("\n注意：没有检测到任何回撤事件，未生成 Excel 文件。")
+detect_events(spy, 0.05, "SPY -5%")
+detect_events(qqq, 0.08, "QQQ -8%")
