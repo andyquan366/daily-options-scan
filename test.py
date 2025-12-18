@@ -1,212 +1,95 @@
-import warnings
-warnings.filterwarnings("ignore", category=FutureWarning)
-
 import yfinance as yf
 import pandas as pd
-import os
-# 导入 ExcelWriter 依赖
-import pandas.io.excel
+import numpy as np
 
-# 关闭缓存，强制拉最新数据
-os.environ["YFINANCE_NO_CACHE"] = "1"
+# --------------------------
+# 回测参数
+# --------------------------
+START = "2023-01-01"
+END = "2024-12-31"
 
-try:
-    from yfinance import Ticker
-    Ticker.cache_disable()
-except:
-    pass
+RISK_BUDGET = 10000          # 每次最大亏损
+SPREAD_WIDTH = 5             # put spread 宽度（点）
+MAX_LOSS_PER_CONTRACT = SPREAD_WIDTH * 100
+TAKE_PROFIT = 0.50           # 50% 止盈
+HOLD_DAYS = 30               # 持仓天数
 
+# --------------------------
+# 下载 QQQ 日 K
+# --------------------------
+qqq = yf.download("QQQ", START, END)
 
-# ============================================================
-# ★ 载入数据 ★
-# ============================================================
-def load_price(ticker):
-    df = yf.download(
-        ticker,
-        # 修正：起始日期改为 2010-01-01
-        start="2010-01-01", 
-        end=None, # 结束日期保持为今天
-        interval="1d",
-        auto_adjust=False,
-        progress=False,
-        ignore_tz=True
-    )
+# 修复 MultiIndex 列名问题
+if isinstance(qqq.columns, pd.MultiIndex):
+    qqq.columns = qqq.columns.get_level_values(0)
 
-    if df is None or df.empty:
-        raise ValueError(f"{ticker} empty")
+# 确保 Close 是 float
+qqq["Close"] = pd.to_numeric(qqq["Close"])
 
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.droplevel(list(range(df.columns.nlevels - 1)))
+# --------------------------
+# 计算回撤
+# --------------------------
+qqq["HighToDate"] = qqq["Close"].cummax()
+qqq["Drawdown"] = (qqq["HighToDate"] - qqq["Close"]) / qqq["HighToDate"]
 
-    if df.shape[1] < 3:
-        raise ValueError(f"{ticker} 数据列太少: {df.columns}")
+# --------------------------
+# 回测主循环
+# --------------------------
+position = None
+trades = []
 
-    # 强制按列顺序取 High / Low
-    # 确保使用当日最高点和最低点
-    df["HIGH"] = df.iloc[:, 1].astype(float)
-    df["LOW"]  = df.iloc[:, 2].astype(float)
-    
-    return df
+for i in range(len(qqq)):
+    today = qqq.index[i]
+    price = qqq["Close"].iloc[i]
+    dd = qqq["Drawdown"].iloc[i]
 
-
-spy = load_price("SPY")
-qqq = load_price("QQQ") 
-
-print("SPY 数据日期范围:", spy.index.min(), "~", spy.index.max())
-print("QQQ 数据日期范围:", qqq.index.min(), "~", qqq.index.max())
-print("="*80)
-
-
-# ============================================================
-# ★★ 事件式回撤（最终稳定版本，修正天数计算逻辑）★★
-# ============================================================
-def detect_events(df, threshold, name):
-
-    high = df["HIGH"]
-    low  = df["LOW"]
-    
-    df_index = df.index
-    events = []
-    
-    # 状态变量
-    in_dd = False
-    event_peak_date = None
-    event_peak_price = None
-    event_low_date = None
-    event_low_price = None
-    
-    current_cycle_peak_date = df_index[0]
-
-    for i, date in enumerate(df_index):
-        cur_low  = float(low.loc[date])
-        cur_high = float(high.loc[date])
+    # ======================================================
+    # 开仓条件：从最高点下跌 >= 8%
+    # ======================================================
+    if position is None and dd >= 0.08:
+        qty = RISK_BUDGET // MAX_LOSS_PER_CONTRACT
+        credit = 1.00 * 100 * qty   # 模拟 credit = $1 per spread
         
-        # 追踪当前周期峰值
-        if cur_high >= float(high.loc[current_cycle_peak_date]):
-            current_cycle_peak_date = date
+        position = {
+            "entry_date": today,
+            "entry_price": price,
+            "credit": credit,
+            "qty": qty,
+            "exit_date": today + pd.Timedelta(days=HOLD_DAYS)
+        }
 
-        # ------------------- 触发回撤 -------------------
-        current_peak_price = float(high.loc[current_cycle_peak_date])
-        cur_dd = cur_low / current_peak_price - 1
-        
-        if not in_dd and cur_dd <= -threshold:
-            in_dd = True
-            
-            event_peak_date = current_cycle_peak_date
-            event_peak_price = current_peak_price
-            
-            event_low_date = date
-            event_low_price = cur_low
+        print(f"[ENTER] {today.date()} credit={credit}, qty={qty}")
 
-        # ------------------- 更新低点 -------------------
-        if in_dd and cur_low < event_low_price:
-            event_low_price = cur_low
-            event_low_date = date
-                
-        # ------------------- 回撤结束 -------------------
-        if in_dd:
-            dd_vs_event_peak = cur_low / event_peak_price - 1
-            
-            if dd_vs_event_peak > -threshold:
-                
-                if i > 0:
-                    end_date = df_index[i - 1]
-                else:
-                    end_date = event_peak_date 
+    # ======================================================
+    # 持仓管理
+    # ======================================================
+    if position is not None:
 
-                max_dd = event_low_price / event_peak_price - 1
-                
-                # ★★★ 修正天数指标计算逻辑 ★★★
-                days_total = df.loc[event_peak_date:end_date].shape[0]
-                days_to_bottom = df.loc[event_peak_date:event_low_date].shape[0]
-                days_to_recovery = days_total - days_to_bottom
-                # ***********************************
+        # 模拟 debit 随价格变化
+        progress = (price - position["entry_price"]) / position["entry_price"]
+        debit = max(0, position["credit"] * (1 - progress))
+        profit = position["credit"] - debit
 
-                events.append({
-                    "Start": event_peak_date.strftime("%Y-%m-%d"),
-                    "End": end_date.strftime("%Y-%m-%d"),
-                    "Bottom": event_low_date.strftime("%Y-%m-%d"),
-                    "PeakHigh": f"{event_peak_price:.2f}",
-                    "BottomLow": f"{event_low_price:.2f}",
-                    "MaxDD": f"{max_dd*100:.2f}%",
-                    "DaysTotal": days_total,             
-                    "DaysToBottom": days_to_bottom,      
-                    "DaysToRecovery": days_to_recovery,  
-                })
+        # 止盈退出
+        if profit >= position["credit"] * TAKE_PROFIT:
+            print(f"[TAKE PROFIT] {today.date()} profit={profit:.2f}")
+            trades.append(profit)
+            position = None
+            continue
 
-                in_dd = False
-                
-                current_cycle_peak_date = date
+        # 到期退出
+        if today >= position["exit_date"]:
+            print(f"[TIME EXIT] {today.date()} profit={profit:.2f}")
+            trades.append(profit)
+            position = None
+            continue
 
-    # ------------------- 尾部事件 -------------------
-    if in_dd: 
-        end_date = df_index[-1]
-        max_dd = event_low_price / event_peak_price - 1
-        
-        # ★★★ 修正天数指标计算（尾部）★★★
-        days_total = df.loc[event_peak_date:end_date].shape[0]
-        days_to_bottom = df.loc[event_peak_date:event_low_date].shape[0]
-        days_to_recovery = days_total - days_to_bottom
-        # ***********************************
+# --------------------------
+# 输出结果
+# --------------------------
+total_profit = sum(trades)
 
-        events.append({
-            "Start": event_peak_date.strftime("%Y-%m-%d"),
-            "End": end_date.strftime("%Y-%m-%d"),
-            "Bottom": event_low_date.strftime("%Y-%m-%d"),
-            "PeakHigh": f"{event_peak_price:.2f}",
-            "BottomLow": f"{event_low_price:.2f}",
-            "MaxDD": f"{max_dd*100:.2f}%",
-            "DaysTotal": days_total,
-            "DaysToBottom": days_to_bottom,
-            "DaysToRecovery": days_to_recovery,
-        })
-
-    print(f"\n{name} 回撤事件（最终稳定版本）")
-    df_events = pd.DataFrame()
-    if events:
-        df_events = pd.DataFrame(events)
-        cols = ["Start", "End", "Bottom", "DaysTotal", "DaysToBottom", "DaysToRecovery", "PeakHigh", "BottomLow", "MaxDD"]
-        df_events = df_events[cols]
-        print(df_events.to_string(index=False))
-    else:
-        print("(No events)")
-    print("="*80)
-    
-    # 返回 DataFrame 供 Excel 导出使用
-    return df_events
-
-
-# ============================================================
-# 执行 (SPY阈值 0.05, QQQ阈值 0.08)
-# ============================================================
-spy_events_df = detect_events(spy, 0.05, "SPY -5%")
-qqq_events_df = detect_events(qqq, 0.08, "QQQ -8%")
-
-
-# ============================================================
-# ★★★★ 导出到 Excel ★★★★
-# ------------------------------------------------------------
-# 修正：将引擎改为 'openpyxl' 以避免 'xlsxwriter' 依赖错误
-# ------------------------------------------------------------
-EXCEL_FILE = "Drawdown_Events_2010_to_Today.xlsx"
-
-# 仅当至少有一个 DataFrame 不为空时才创建 Excel 文件
-if not spy_events_df.empty or not qqq_events_df.empty:
-    try:
-        # 尝试使用 openpyxl 引擎
-        with pd.ExcelWriter(EXCEL_FILE, engine='openpyxl') as writer:
-            if not spy_events_df.empty:
-                spy_events_df.to_excel(writer, sheet_name='SPY_DD_Events', index=False)
-            if not qqq_events_df.empty:
-                qqq_events_df.to_excel(writer, sheet_name='QQQ_DD_Events', index=False)
-        
-        print(f"\n★★★★ 结果已成功导出到 Excel 文件：{EXCEL_FILE} ★★★★")
-        print("（文件位于程序运行的同目录下）")
-
-    except Exception as e:
-        print(f"\n!!!! 导出 Excel 时发生错误: {e}")
-        # 如果 openpyxl 仍然报错，明确告知用户安装
-        print("!!!! 导出失败。请在命令行中运行以下命令安装所需的 Excel 库：")
-        print("!!!! pip install openpyxl")
-else:
-    print("\n注意：没有检测到任何回撤事件，未生成 Excel 文件。")
+print("\n====================================")
+print(f"Total trades: {len(trades)}")
+print(f"Total profit: {total_profit:.2f}")
+print("====================================")
