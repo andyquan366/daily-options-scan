@@ -28,6 +28,10 @@ tickers = [
 def fetch_prices(tickers):
     prices = []
 
+    # CoinGecko 请求头（必须，否则 Actions 下会返回空 JSON）
+    headers = {
+        "User-Agent": "daily-options-scan/1.0"
+    }
     # 所有 *-CAD 的加密货币
     # 统一规则：先取 USD → 再换算 CAD
     # ❌ 不直接使用 CoinGecko 的 CAD
