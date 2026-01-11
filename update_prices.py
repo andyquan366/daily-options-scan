@@ -18,8 +18,9 @@ tickers = [
     "SUI-CAD",
     "LINK-CAD",
     "PYTH-CAD",
-    "ENA-CAD",
-    "JUP-CAD"
+    "RENDER-CAD",
+    "UNI-CAD",
+    "UMA-CAD"
 ]
 
 def fetch_prices(tickers):
@@ -30,8 +31,9 @@ def fetch_prices(tickers):
         "ONDO-CAD": ("ondo-finance", "cad"),
         "SUI-CAD": ("sui", "cad"),
         "PYTH-CAD": ("pyth-network", "cad"),
-        "ENA-CAD": ("ethena", "cad"),
-        "JUP-CAD": ("jupiter-exchange-solana", "cad")
+        "RENDER-CAD": ("render-token", "cad"),
+        "UNI-CAD": ("uniswap", "cad"),
+        "UMA-CAD": ("uma", "cad")
     }
 
     for ticker in tickers:
@@ -79,12 +81,12 @@ def write_prices_to_sheet_split(prices):
 
     SPREADSHEET_ID = '1Rfs87zMtB9hyhkRiW1UGnAuNeLjQEcb_-9yRtLjRATI'
 
-    ranges = ["'ETF'!E21:E22", "'ETF'!E41:E45", "'ETF'!E49", "'ETF'!E56:E62"]
+    ranges = ["'ETF'!E21:E22", "'ETF'!E41:E45", "'ETF'!E49", "'ETF'!E56:E63"]
     values_list = [
         [[prices[0]], [prices[1]]],
         [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]],
         [[prices[7]]],
-        [[prices[8]], [prices[9]], [prices[10]], [prices[11]], [prices[12]], [prices[13]], [prices[14]]]
+        [[prices[8]], [prices[9]], [prices[10]], [prices[11]], [prices[12]], [prices[13]], [prices[14]], [prices[15]]]
     ]
 
     for rng, vals in zip(ranges, values_list):
