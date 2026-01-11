@@ -52,7 +52,14 @@ def fetch_prices(tickers):
         "ids": "usd",
         "vs_currencies": "cad"
     }
-    fx_data = requests.get(fx_url, params=fx_params, timeout=10).json()
+
+    fx_data = requests.get(
+        fx_url,
+        params=fx_params,
+        headers=headers,
+        timeout=10
+    ).json()
+
     usd_to_cad = fx_data.get("usd", {}).get("cad")
 
     if usd_to_cad is None:
@@ -70,7 +77,15 @@ def fetch_prices(tickers):
                     "ids": coin_id,
                     "vs_currencies": "usd"
                 }
-                data = requests.get(price_url, params=price_params, timeout=10).json()
+
+                data = requests.get(
+                    price_url,
+                    params=price_params,
+                    headers=headers,
+                    timeout=10
+                ).json()
+
+
                 time.sleep(1)  # 防止 CoinGecko 限流
 
                 usd_price = data.get(coin_id, {}).get("usd")
