@@ -28,13 +28,15 @@ tickers = [
 def fetch_prices(tickers):
     prices = []
 
-    # === CoinGecko 只用于 SUI / UNI ===
+    # === CoinGecko：只用于 Yahoo 不可靠 / 不支持的币 ===
+    # 使用 USD 价格，后续统一换 CAD
     coingecko_usd_map = {
         "SUI-CAD": "sui",
-        "UNI-CAD": "uniswap"
+        "UNI-CAD": "uniswap",
+        "JUP-CAD": "jupiter-exchange-solana"
     }
 
-    # === Yahoo Finance crypto（不含 SUI / UNI）===
+    # === Yahoo Finance crypto（排除 SUI / UNI / JUP）===
     yahoo_crypto_map = {
         "SOL-CAD": "SOL-USD",
         "ONDO-CAD": "ONDO-USD",
@@ -42,11 +44,10 @@ def fetch_prices(tickers):
         "PYTH-CAD": "PYTH-USD",
         "RENDER-CAD": "RENDER-USD",
         "UMA-CAD": "UMA-USD",
-        "ENA-CAD": "ENA-USD",
-        "JUP-CAD": "JUP-USD"
+        "ENA-CAD": "ENA-USD"
     }
 
-    # === USD → CAD（Yahoo）===
+    # === USD → CAD（Yahoo FX）===
     fx = yf.Ticker("USDCAD=X")
     fx_hist = fx.history(period="1d")
 
@@ -58,7 +59,7 @@ def fetch_prices(tickers):
     # === 遍历 ticker ===
     for ticker in tickers:
         try:
-            # ---------- SUI / UNI：CoinGecko ----------
+            # ---------- CoinGecko：SUI / UNI / JUP ----------
             if ticker in coingecko_usd_map:
                 coin_id = coingecko_usd_map[ticker]
 
@@ -67,6 +68,7 @@ def fetch_prices(tickers):
                     "ids": coin_id,
                     "vs_currencies": "usd"
                 }
+
                 data = requests.get(url, params=params, timeout=10).json()
                 time.sleep(1)
 
@@ -80,7 +82,7 @@ def fetch_prices(tickers):
                 prices.append(round(usd_price * usd_to_cad, 6))
                 continue
 
-            # ---------- 其他 crypto：Yahoo ----------
+            # ---------- Yahoo crypto ----------
             if ticker in yahoo_crypto_map:
                 yahoo_ticker = yahoo_crypto_map[ticker]
 
