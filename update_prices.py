@@ -28,86 +28,51 @@ tickers = [
 def fetch_prices(tickers):
     prices = []
 
-    # CoinGecko 请求头（必须，否则 Actions 下会返回空 JSON）
-    headers = {
-        "User-Agent": "daily-options-scan/1.0"
-    }
-    # 所有 *-CAD 的加密货币
-    # 统一规则：先取 USD → 再换算 CAD
-    # ❌ 不直接使用 CoinGecko 的 CAD
-    # ❌ 不兜底、不写死、不猜价格
-    coingecko_usd_map = {
-        "SOL-CAD": "solana",
-        "ONDO-CAD": "ondo-finance",
-        "SUI-CAD": "sui",
-        "LINK-CAD": "chainlink",
-        "PYTH-CAD": "pyth-network",
-        "RENDER-CAD": "render-token",
-        "UNI-CAD": "uniswap",
-        "UMA-CAD": "uma",
-        "ENA-CAD": "ethena",
-        "JUP-CAD": "jupiter-exchange-solana"
+    # Yahoo Finance crypto 映射（统一用 USD）
+    yahoo_crypto_map = {
+        "SOL-CAD": "SOL-USD",
+        "ONDO-CAD": "ONDO-USD",
+        "SUI-CAD": "SUI-USD",
+        "LINK-CAD": "LINK-USD",
+        "PYTH-CAD": "PYTH-USD",
+        "RENDER-CAD": "RENDER-USD",
+        "UNI-CAD": "UNI-USD",
+        "UMA-CAD": "UMA-USD",
+        "ENA-CAD": "ENA-USD",
+        "JUP-CAD": "JUP-USD"
     }
 
-    # 1️⃣ 获取 USD → CAD 汇率（严格模式）
-    # 任意失败 = 整个任务失败（避免写假数据）
-    fx_url = "https://api.coingecko.com/api/v3/simple/price"
-    fx_params = {
-        "ids": "usd",
-        "vs_currencies": "cad"
-    }
+    # 1️⃣ 先取 USD → CAD 汇率（Yahoo）
+    fx = yf.Ticker("USDCAD=X")
+    fx_hist = fx.history(period="1d")
 
-    fx_data = requests.get(
-        fx_url,
-        params=fx_params,
-        headers=headers,
-        timeout=10
-    ).json()
+    if fx_hist.empty:
+        raise RuntimeError("无法从 Yahoo 获取 USD→CAD 汇率")
 
-    usd_to_cad = fx_data.get("usd", {}).get("cad")
-
-    if usd_to_cad is None:
-        raise RuntimeError("无法获取 USD→CAD 汇率，已中止")
+    usd_to_cad = fx_hist["Close"].iloc[-1]
 
     # 2️⃣ 遍历所有 ticker
     for ticker in tickers:
         try:
-            # === 加密货币：CoinGecko（USD → CAD）===
-            if ticker in coingecko_usd_map:
-                coin_id = coingecko_usd_map[ticker]
+            # === 加密货币：Yahoo Finance（USD → CAD）===
+            if ticker in yahoo_crypto_map:
+                yahoo_ticker = yahoo_crypto_map[ticker]
 
-                price_url = "https://api.coingecko.com/api/v3/simple/price"
-                price_params = {
-                    "ids": coin_id,
-                    "vs_currencies": "usd"
-                }
+                t = yf.Ticker(yahoo_ticker)
+                hist = t.history(period="1d")
 
-                data = requests.get(
-                    price_url,
-                    params=price_params,
-                    headers=headers,
-                    timeout=10
-                ).json()
-
-
-                time.sleep(1)  # 防止 CoinGecko 限流
-
-                usd_price = data.get(coin_id, {}).get("usd")
-
-                # USD 价格缺失 → 不写入
-                if usd_price is None:
-                    print(f"{ticker}: USD price not available")
+                if hist.empty:
+                    print(f"{ticker}: Yahoo USD price not available")
                     prices.append(None)
                     continue
 
-                # USD → CAD
+                usd_price = hist["Close"].iloc[-1]
                 cad_price = usd_price * usd_to_cad
 
-                # crypto 使用高精度
                 prices.append(round(cad_price, 6))
                 continue
 
-            # === 非加密资产：yfinance ===
+            # === 非加密资产（ETF / 股票）：Yahoo 原样 ===
             t = yf.Ticker(ticker)
             hist = t.history(period="1d")
 
@@ -121,6 +86,7 @@ def fetch_prices(tickers):
             prices.append(None)
 
     return prices
+
 
 
 def write_prices_to_sheet_split(prices):
