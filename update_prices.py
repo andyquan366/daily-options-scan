@@ -28,21 +28,25 @@ tickers = [
 def fetch_prices(tickers):
     prices = []
 
-    # Yahoo Finance crypto 映射（统一用 USD）
+    # === CoinGecko 只用于 SUI / UNI ===
+    coingecko_usd_map = {
+        "SUI-CAD": "sui",
+        "UNI-CAD": "uniswap"
+    }
+
+    # === Yahoo Finance crypto（不含 SUI / UNI）===
     yahoo_crypto_map = {
         "SOL-CAD": "SOL-USD",
         "ONDO-CAD": "ONDO-USD",
-        "SUI-CAD": "SUI-USD",
         "LINK-CAD": "LINK-USD",
         "PYTH-CAD": "PYTH-USD",
         "RENDER-CAD": "RENDER-USD",
-        "UNI-CAD": "UNI-USD",
         "UMA-CAD": "UMA-USD",
         "ENA-CAD": "ENA-USD",
         "JUP-CAD": "JUP-USD"
     }
 
-    # 1️⃣ 先取 USD → CAD 汇率（Yahoo）
+    # === USD → CAD（Yahoo）===
     fx = yf.Ticker("USDCAD=X")
     fx_hist = fx.history(period="1d")
 
@@ -51,10 +55,32 @@ def fetch_prices(tickers):
 
     usd_to_cad = fx_hist["Close"].iloc[-1]
 
-    # 2️⃣ 遍历所有 ticker
+    # === 遍历 ticker ===
     for ticker in tickers:
         try:
-            # === 加密货币：Yahoo Finance（USD → CAD）===
+            # ---------- SUI / UNI：CoinGecko ----------
+            if ticker in coingecko_usd_map:
+                coin_id = coingecko_usd_map[ticker]
+
+                url = "https://api.coingecko.com/api/v3/simple/price"
+                params = {
+                    "ids": coin_id,
+                    "vs_currencies": "usd"
+                }
+                data = requests.get(url, params=params, timeout=10).json()
+                time.sleep(1)
+
+                usd_price = data.get(coin_id, {}).get("usd")
+
+                if usd_price is None:
+                    print(f"{ticker}: CoinGecko USD price not available")
+                    prices.append(None)
+                    continue
+
+                prices.append(round(usd_price * usd_to_cad, 6))
+                continue
+
+            # ---------- 其他 crypto：Yahoo ----------
             if ticker in yahoo_crypto_map:
                 yahoo_ticker = yahoo_crypto_map[ticker]
 
@@ -67,12 +93,10 @@ def fetch_prices(tickers):
                     continue
 
                 usd_price = hist["Close"].iloc[-1]
-                cad_price = usd_price * usd_to_cad
-
-                prices.append(round(cad_price, 6))
+                prices.append(round(usd_price * usd_to_cad, 6))
                 continue
 
-            # === 非加密资产（ETF / 股票）：Yahoo 原样 ===
+            # ---------- ETF / 股票：Yahoo ----------
             t = yf.Ticker(ticker)
             hist = t.history(period="1d")
 
