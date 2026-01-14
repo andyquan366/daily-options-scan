@@ -14,15 +14,15 @@ tickers = [
     "YAMD.NE",
     "HHIS-U.TO",
     "SOL-CAD",
-    "ONDO-CAD",
-    "SUI-CAD",
-    "LINK-CAD",
     "PYTH-CAD",
+    "ENA-CAD",
+    "LINK-CAD",
+    "ONDO-CAD",
     "RENDER-CAD",
+    "JUP-CAD",
+    "SUI-CAD",
     "UNI-CAD",
     "UMA-CAD",
-    "ENA-CAD",
-    "JUP-CAD",
 ]
 
 def fetch_prices(tickers):
