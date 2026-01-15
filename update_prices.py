@@ -128,7 +128,7 @@ def write_prices_to_sheet_split(prices):
 
     SPREADSHEET_ID = '1Rfs87zMtB9hyhkRiW1UGnAuNeLjQEcb_-9yRtLjRATI'
 
-    ranges = ["'ETF'!E21:E22", "'ETF'!E41:E45", "'ETF'!E49", "'ETF'!E56:E65"]
+    ranges = ["'ETF'!E19:E20", "'ETF'!E40:E44", "'ETF'!E48", "'ETF'!E55:E64"]
     values_list = [
         [[prices[0]], [prices[1]]],
         [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]]],
