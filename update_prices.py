@@ -7,7 +7,6 @@ from googleapiclient.discovery import build
 tickers = [
     "HBIX.NE",
     "HBTE.NE",
-    "HHIS-U.TO",
     "SOL-CAD",
     "PYTH-CAD",
     "ENA-CAD",
@@ -126,8 +125,7 @@ def write_prices_to_sheet_split(prices):
     ranges = ["'ETF'!F19:F20", "'ETF'!F43", "'ETF'!F50:F59"]
     values_list = [
         [[prices[0]], [prices[1]]],
-        [[prices[2]]], 
-        [[prices[3]], [prices[4]], [prices[5]], [prices[6]], [prices[7]], [prices[8]], [prices[9]], [prices[10]], [prices[11]], [prices[12]]]
+        [[prices[2]], [prices[3]], [prices[4]], [prices[5]], [prices[6]], [prices[7]], [prices[8]], [prices[9]], [prices[10]], [prices[11]]]
     ]
 
     for rng, vals in zip(ranges, values_list):
