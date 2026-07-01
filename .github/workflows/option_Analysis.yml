@@ -2,7 +2,7 @@ name: option_Analysis
 
 on:
   schedule:
-    - cron: '15,45 10-21 * * 1-5'  # 工作日 UTC 14:00–20:00（EDT 10:00–16:00），每小时6次，错开整点
+    - cron: '15,45 12-21 * * 1-5'  # 工作日 UTC 12:00–21:00（EDT 08:00–17:00），每小时2次，错开整点
 
   workflow_dispatch:   # ✅ 允许手动触发
 
