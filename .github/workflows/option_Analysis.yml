@@ -52,5 +52,3 @@ jobs:
           git commit --allow-empty -m "keep alive [skip ci]" || echo "nothing to commit"
           git push
 
-
-github搞了限制。我这个每天才运行2次
