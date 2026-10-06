@@ -1,8 +1,6 @@
 name: option_Analysis1
 
 on:
-  schedule:
-    - cron: '15,45 10-20 * * 1-5'  # 工作日 UTC 10:00–20:00，每小时2次
 
   workflow_dispatch:   # ✅ 允许手动触发
 
