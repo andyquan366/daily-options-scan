@@ -1,19 +1,39 @@
-@echo off
-cd /d "%~dp0"
-echo ✅ 当前路径：%cd%
+﻿@echo off
+setlocal
+cd /d "%~dp0" || goto fail
 
-:: ✅ 告诉 Git：永远别再管 option_activity_log.xlsx（只需执行一次）
+echo Current path: %cd%
+
+rem Keep the local Excel file out of the commit.
 git update-index --assume-unchanged option_activity_log.xlsx
+if errorlevel 1 goto fail
 
-:: ✅ 提交所有文件，排除 Excel（reset 确保不会意外加入）
 git add .
-git reset option_activity_log.xlsx >nul 2>&1
-git commit -m "sync on %date% %time%" 2>nul
+if errorlevel 1 goto fail
 
-:: ✅ 拉远程代码，不影响本地 Excel
+git reset -- option_activity_log.xlsx >nul 2>&1
+rem A missing/untracked Excel file is fine.
+
+git diff --cached --quiet
+if errorlevel 2 goto fail
+if errorlevel 1 (
+    git commit -m "sync on %date% %time%"
+    if errorlevel 1 goto fail
+) else (
+    echo No new changes to commit.
+)
+
 git pull origin main --rebase
+if errorlevel 1 goto fail
 
-:: ✅ 推送（不包含 Excel）
 git push origin main
+if errorlevel 1 goto fail
 
+echo Sync successful.
+exit /b 0
+
+:fail
+echo.
+echo ERROR: Sync failed. Review the messages above.
 pause
+exit /b 1
